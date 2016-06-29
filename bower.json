@@ -1,0 +1,20 @@
+{
+  "name": "allex__web_webappcomponent",
+  "homepage": "https://github.com/allex-web-components/webapp",
+  "authors": [
+    "Veljko Popovic <v.s.popovic@gmail.com>"
+  ],
+  "description": "AllEx APP implementation in web world",
+  "main": "src/index.js",
+  "keywords": [
+    "ecosystem:allex"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
