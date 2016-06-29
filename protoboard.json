@@ -1,0 +1,20 @@
+{
+  "js": {
+    "lib": [
+      "src/index.js",
+      "src/abstractions/WebElement.js",
+      "src/abstractions/WebPage.js"
+    ],
+    "apploader" : [
+      "src/apploader.js"
+    ]
+  },
+  "exclude": {
+    "jshint": [
+      "browserified.js"
+    ]
+  },
+  "protoboard": {
+    "role": "web_component"
+  }
+}
