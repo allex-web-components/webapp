@@ -3,7 +3,11 @@
     "lib": [
       "src/index.js",
       "src/abstractions/WebElement.js",
-      "src/abstractions/WebPage.js"
+      "src/abstractions/WebPage.js",
+      "src/resources/AnimatedImageZipLibrary.js"
+    ],
+    "vektr" : [
+      "src/elements/VektrCanvas.js"
     ],
     "apploader" : [
       "src/apploader.js"
