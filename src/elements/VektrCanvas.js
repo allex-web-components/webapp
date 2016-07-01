@@ -36,7 +36,7 @@
   function VektrCanvas (id, options) {
     WebElement.call(this, id, options);
     this.scene = null;
-    this.renderer = null;
+    this.renderers = null;
   }
   lib.inherit (VektrCanvas, WebElement);
   VektrCanvas.prototype.__cleanUp = function () {
@@ -92,6 +92,11 @@
       autoresize: true,
       mindOrientation : false
     };
+  };
+
+  VektrCanvas.prototype.set_actual = function (val) {
+    WebElement.prototype.set_actual.call(this, val);
+    window.onresize();
   };
 
   module.elements.VektrCanvas = VektrCanvas;
