@@ -1,8 +1,9 @@
-(function (allex, module, applib, vektr) {
+(function (allex, module, applib, vektr, $) {
   'use strict';
 
   var lib = allex.lib,
     WebElement = module.abstractions.WebElement,
+    BasicElement = applib.BasicElement,
     q = lib.q;
 
   var CANVAS_SCHEMA = {
@@ -27,7 +28,9 @@
       autoresize : { type : "boolean" },
       debug : { type : "boolean" },
       mindOrientation : {type : "boolean" },
-      ctor : {type : "string"}
+      ctor : {type : "string"},
+      resources : WebElement.ResourcesSchema,
+      klass : { type : "string" }
     },
     additionalProperties : false,
     required : ['debug', 'autoresize', 'mindOrientation', 'svg', 'ctor']
@@ -57,14 +60,28 @@
     return d.promise;
   };
 
-  VektrCanvas.prototype.doInitialize = function () {
-    WebElement.prototype.doInitialize.call(this);
+  VektrCanvas.prototype.initialize = function () {
+    BasicElement.prototype.initialize.call(this);
+    this.$element = this.__parent.$element.find('#'+this.get('id'));
+    if (!(this.$element && this.$element.length)){
+      this.$element = $('<div>').attr('id',this.get('id'));
+      this.$element.addClass(this.getConfigVal('klass'));
+      this.__parent.$element.append(this.$element);
+    }
+  };
+
+
+  VektrCanvas.prototype.load = function () {
+    return WebElement.prototype.load.call(this).then(this._onLoaded.bind(this));
+  };
+
+  VektrCanvas.prototype._onLoaded = function () {
     this.scene = new vektr.compositing.Scene(this.get('id'), this.config);
     var svg = this.getConfigVal ('svg'),
       ctor = eval(this.getConfigVal('ctor')),// jshint ignore:line
       p;  
 
-    if (!lib.isFunction (ctor)) throw new Error('Failed to instantiate SVG, ctor is not a function');
+    if (!lib.isFunction (ctor)) return q.reject(new Error('Failed to instantiate SVG, ctor is not a function'));
     this.renderers = [];
 
     if (lib.isString(svg)) {
@@ -74,6 +91,10 @@
     }
 
     return p.then (this._runRenderers.bind(this));
+  };
+
+  VektrCanvas.prototype.unload = function () {
+    this.$element.empty();
   };
 
   VektrCanvas.prototype._runRenderers = function () {
@@ -101,4 +122,4 @@
 
   module.elements.VektrCanvas = VektrCanvas;
   applib.registerElementType ('VektrCanvas', VektrCanvas);
-})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, vektr);
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, vektr, jQuery);

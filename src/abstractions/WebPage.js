@@ -3,6 +3,7 @@
 
   var lib = allex.lib,
     WebElement = module.abstractions.WebElement,
+    BasicElement = applib.BasicElement,
     q = lib.q;
 
   function WebPage (id, options){
@@ -13,10 +14,10 @@
     WebElement.prototype.__cleanUp.call(this);
   };
 
-  WebPage.prototype.doInitialize = function () {
+  WebPage.prototype.initialize = function () {
     this.$element = $('body #'+this.get('id'));
     if (!this.$element.length) throw new Error('Unable to find page element '+this.get('id')+' as body child');
-    this.set_actual(this.get('actual'));
+    BasicElement.prototype.initialize.call(this);
   };
 
   WebPage.prototype.createElements = function (elements) {
