@@ -51,7 +51,13 @@
   WebElement.prototype.load = function () {
     var resources = this.getConfigVal('resources');
     if (!resources || !resources.length) return q.resolve('ok');
-    return q.all(resources.map (resourceFactory));
+    var promise = q.all(resources.map (resourceFactory));
+
+    var throbber = applib.getResource('MainThrobber');
+    if (throbber){
+      throbber.addPromise(promise);
+    }
+    return promise;
   };
 
 

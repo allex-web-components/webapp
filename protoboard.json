@@ -5,7 +5,8 @@
       "src/abstractions/WebElement.js",
       "src/abstractions/WebPage.js",
       "src/resources/AnimatedImageZipLibrary.js",
-      "src/resources/WebFont.js"
+      "src/resources/WebFont.js",
+      "src/resources/Throbber.js"
     ],
     "vektr" : [
       "src/elements/VektrCanvas.js"
