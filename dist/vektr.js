@@ -48,15 +48,15 @@
   };
 
 
-  function _onloaded (vcanvas, defer, svg) {
+  function _onVektrLoaded (vcanvas, defer, svg) {
     if (!svg) return defer.reject(new Error('failed to load svg'));
     vcanvas.renderers.push (svg);
     defer.resolve(svg);
   }
 
-  VektrCanvas.prototype._load = function (svg_path, ctor) {
+  VektrCanvas.prototype._loadSVG = function (svg_path, ctor) {
     var d = q.defer();
-    vektr.load (svg_path, ctor, _onloaded.bind(null, this, d));
+    vektr.load (svg_path, ctor, _onVektrLoaded.bind(null, this, d));
     return d.promise;
   };
 
@@ -85,9 +85,9 @@
     this.renderers = [];
 
     if (lib.isString(svg)) {
-      p = this._load(svg, ctor);
+      p = this._loadSVG(svg, ctor);
     }else{
-      p = q.all([this._load(svg.horizontal, ctor), this._load(svg.vertical, ctor)]);
+      p = q.all([this._loadSVG(svg.horizontal, ctor), this._loadSVG(svg.vertical, ctor)]);
     }
 
     return p.then (this._runRenderers.bind(this));
