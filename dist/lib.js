@@ -1,13 +1,103 @@
-(function (allex, applib) {
+(function (allex, applib, linkinglib) {
   'use strict';
+
+  var lib = allex.lib,
+    EventEmitterHandler = linkinglib.eventEmitterHandlingRegistry.EventEmitterHandler;
+  
+  function JQueryChangeEventEmitterHandler (eventemitter, eventname) {
+    EventEmitterHandler.call(this, eventemitter, eventname); 
+    this.name = eventname;
+    this.listener = null;
+  }
+  lib.inherit(JQueryChangeEventEmitterHandler, EventEmitterHandler);
+  JQueryChangeEventEmitterHandler.prototype.destroy = function () {
+    if (this.listener) { 
+      this.emitter.off(this.name, this.listener);
+    }
+    this.listener = null;
+    this.name = null;
+    EventEmitterHandler.prototype.destroy.call(this);
+  };
+  JQueryChangeEventEmitterHandler.prototype.raiseEvent = function () {
+    this.emitter.trigger.call(this.emitter, this.name, Array.prototype.slice.call(arguments));
+  };    
+  JQueryChangeEventEmitterHandler.prototype.listenToEvent = function (cb) {
+    if (!this.listener) {
+      this.listener = cb;
+      if (this.name === 'change') {
+        this.emitter.on(this.name, this._handleChange.bind(this, cb));
+      }else{
+        this.emitter.on(this.name, cb);
+      }
+      return this;
+    } 
+  };
+  JQueryChangeEventEmitterHandler.prototype._handleChange = function (cb, evnt) {
+    cb(jQuery(evnt.target).val());
+  };
+
+  JQueryChangeEventEmitterHandler.recognizer = function (emitterwithname) {
+    if (emitterwithname &&
+      emitterwithname.emitter &&
+      emitterwithname.emitter.is &&
+      (emitterwithname.emitter.is('input')) &&
+      lib.isFunction(emitterwithname.emitter.on) &&
+      lib.isFunction(emitterwithname.emitter.off) &&
+      lib.isFunction(emitterwithname.emitter.bind) &&
+      lib.isFunction(emitterwithname.emitter.unbind) &&
+      lib.isFunction(emitterwithname.emitter.trigger)) {
+      return JQueryChangeEventEmitterHandler;
+    }
+  };
+  linkinglib.eventEmitterHandlingRegistry.register(JQueryChangeEventEmitterHandler.recognizer);
+
+ 
+  function JQueryEventEmitterHandler (eventemitter, eventname) {
+    EventEmitterHandler.call(this, eventemitter, eventname); 
+    this.name = eventname;
+    this.listener = null;
+  }
+  lib.inherit(JQueryEventEmitterHandler, EventEmitterHandler);
+  JQueryEventEmitterHandler.prototype.destroy = function () {
+    if (this.listener) { 
+      this.emitter.off(this.name, this.listener);
+    }
+    this.listener = null;
+    this.name = null;
+    EventEmitterHandler.prototype.destroy.call(this);
+  };
+  JQueryEventEmitterHandler.prototype.raiseEvent = function () {
+    this.emitter.trigger.call(this.emitter, this.name, Array.prototype.slice.call(arguments));
+  };    
+  JQueryEventEmitterHandler.prototype.listenToEvent = function (cb) {
+    if (!this.listener) {
+      this.listener = cb;
+      this.emitter.on(this.name, cb);
+      return this;
+    } 
+  };    
+  JQueryEventEmitterHandler.recognizer = function (emitterwithname) {
+    if (emitterwithname &&
+      emitterwithname.emitter &&
+      lib.isFunction(emitterwithname.emitter.on) &&
+      lib.isFunction(emitterwithname.emitter.off) &&
+      lib.isFunction(emitterwithname.emitter.bind) &&
+      lib.isFunction(emitterwithname.emitter.unbind) &&
+      lib.isFunction(emitterwithname.emitter.trigger)) {
+      return JQueryEventEmitterHandler;
+    }
+  };
+  linkinglib.eventEmitterHandlingRegistry.register(JQueryEventEmitterHandler.recognizer);
+
+
   allex.WEB_COMPONENTS.allex_web_webappcomponent = {
     abstractions : {},
     resources : {},
     APP : null,
-    elements: {}
+    elements: {},
+    mixins : {}
   };
-})(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib);
-
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib, ALLEX.WEB_COMPONENTS.allex_applinkinglib);
 //samo da te vidim
 (function (allex, module, applib, $) {
   'use strict';
@@ -35,14 +125,14 @@
 
   WebElement.prototype.initialize = function () {
     BasicElement.prototype.initialize.call(this);
-    this.$element = this.__parent.$element.find('#'+this.get('id'));
+    this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
     this.set_actual(this.get('actual'));
   };
 
   WebElement.prototype.set_actual = function (val) {
-    BasicElement.prototype.set_actual.call(this, val);
-    if (!this.$element) return;
+    var ret = BasicElement.prototype.set_actual.call(this, val);
+    if (!this.$element) return ret;
     if (val) {
       if (this.loaded) {
         this.show();
@@ -54,9 +144,20 @@
       }
     }else{
       this.hide();
-      this.unload();
       this.set('loaded', false);
     }
+    return ret;
+  };
+
+  WebElement.prototype.set_loaded = function (val) {
+    if (this.loaded == val) return false;
+    var prev = this.loaded;
+    this.loaded = val;
+    if (!val && prev) {
+      this.unload();
+    }
+
+    return true;
   };
 
   WebElement.prototype.load = function () {
@@ -72,9 +173,7 @@
   };
 
 
-  WebElement.prototype.unload = function () {
-    throw new Error('Unload not implemented');
-  };
+  WebElement.prototype.unload = lib.dummyFunc;
 
   WebElement.prototype.show = function () {
     this.$element.show();
@@ -82,6 +181,40 @@
 
   WebElement.prototype.hide = function () {
     this.$element.hide();
+  };
+
+  WebElement.prototype.getElement = function (path) {
+    if (path.indexOf('.$element.') === 0) {
+      return this.$element.find('#'+path.replace('.$element.', ''));
+    }
+
+    path = path.replace (/^\./, '');
+
+    if (path === '$element')  {
+      return this.$element;
+    }
+
+    if (path === '.') {
+      return this.getMeAsElement();
+    }
+
+    return this.childAtPath(path);
+  };
+
+  WebElement.prototype.findById = function (id) {
+    if ('$element' === id) return this.$element;
+    return BasicElement.prototype.findById.call(this,id);
+  };
+
+  WebElement.prototype.getMeAsElement = function () {
+    //return this.$element;
+    return this;
+  };
+
+  WebElement.prototype.findDomReference = function (type){
+    if (!type) throw new Error('No type given');
+    var id = this.id;
+    return jQuery('#references #references_'+id+' #references_'+id+'_'+type);
   };
 
   WebElement.ResourcesSchema = {
@@ -99,45 +232,17 @@
   };
 
   module.abstractions.WebElement = WebElement;
+  applib.registerElementType ('WebElement',WebElement);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 //samo da te vidim
-(function (allex, module, applib, $) {
-  'use strict';
-
-  var lib = allex.lib,
-    WebElement = module.abstractions.WebElement,
-    BasicElement = applib.BasicElement,
-    q = lib.q;
-
-  function WebPage (id, options){
-    WebElement.call(this, id, options);
-  }
-  lib.inherit (WebPage, WebElement);
-  WebPage.prototype.__cleanUp = function () {
-    WebElement.prototype.__cleanUp.call(this);
-  };
-
-  WebPage.prototype.initialize = function () {
-    this.$element = $('body #'+this.get('id'));
-    if (!this.$element.length) throw new Error('Unable to find page element '+this.get('id')+' as body child');
-    BasicElement.prototype.initialize.call(this);
-  };
-
-  WebPage.prototype.createElements = function (elements) {
-    return WebElement.prototype.createElements.call(this, elements);
-  };
-
-  module.abstractions.WebPage = WebPage;
-})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 
 //samo da te vidim
 (function (allex, module, applib) {
   'use strict';
 
   var lib = allex.lib,
-    BasicResourceLoader = applib.BasicResourceLoader,
-    ZipLoader = ALLEX.WEB_COMPONENTS['allex_vektr.imageanimations'].ZipLoader;
+    BasicResourceLoader = applib.BasicResourceLoader;
 
 
   var CONFIG_SCHEMA = {
@@ -161,6 +266,7 @@
 
   AnimatedImageZipLibrary.prototype.load = function () {
     var extractor = this.getConfigVal('extractor');
+    var ZipLoader = ALLEX.WEB_COMPONENTS['allex_vektr.imageanimations'].ZipLoader;
     this.zl = new ZipLoader(extractor ? new RegExp(extractor) : null);
     var p = this.zl.load(this.getConfigVal('url'));
 
@@ -308,7 +414,6 @@
       if (this.pending.length) {
         this.$element.show();
       }else{
-        console.log('nema vise nista ..');
         this.$element.hide();
       }
     };
@@ -316,3 +421,33 @@
     module.resources.Throbber = Throbber;
     applib.registerResourceType('Throbber', Throbber);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
+//samo da te vidim
+(function (allex, module, applib) {
+  'use strict';
+
+  var lib = allex.lib,
+    BasicAngularController = lib.BasicAngularController,
+    WebElement = module.abstractions.WebElement,
+    q = lib.q;
+
+    function DataElementMixIn () {
+      this.data = null;
+    }
+
+    DataElementMixIn.prototype.__cleanUp = function () {
+      this.data = null;
+    };
+
+    DataElementMixIn.prototype.set_data = function (data) {
+      if (this.data === data) return false;
+      this.data = data;
+      this.$scopectrl.set('data', data);
+    };
+
+    DataElementMixIn.addMethods = function (chld) {
+      lib.inheritMethods (chld, DataElementMixIn, 'set_data');
+    };
+
+    module.mixins.DataElementMixIn = DataElementMixIn;
+
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);

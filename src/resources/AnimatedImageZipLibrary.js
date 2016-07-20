@@ -2,8 +2,7 @@
   'use strict';
 
   var lib = allex.lib,
-    BasicResourceLoader = applib.BasicResourceLoader,
-    ZipLoader = ALLEX.WEB_COMPONENTS['allex_vektr.imageanimations'].ZipLoader;
+    BasicResourceLoader = applib.BasicResourceLoader;
 
 
   var CONFIG_SCHEMA = {
@@ -27,6 +26,7 @@
 
   AnimatedImageZipLibrary.prototype.load = function () {
     var extractor = this.getConfigVal('extractor');
+    var ZipLoader = ALLEX.WEB_COMPONENTS['allex_vektr.imageanimations'].ZipLoader;
     this.zl = new ZipLoader(extractor ? new RegExp(extractor) : null);
     var p = this.zl.load(this.getConfigVal('url'));
 

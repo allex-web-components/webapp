@@ -6,10 +6,20 @@
       "src/abstractions/WebPage.js",
       "src/resources/AnimatedImageZipLibrary.js",
       "src/resources/WebFont.js",
-      "src/resources/Throbber.js"
+      "src/resources/Throbber.js",
+      "src/mixins/DataElementMixIn.js"
     ],
     "vektr" : [
       "src/elements/VektrCanvas.js"
+    ],
+    "angular": [
+      "src/angular.js",
+      "src/elements/angular/index.js",
+      "src/elements/angular/BasicAngularElement.js",
+      "src/elements/angular/ActiveDOM.js",
+      "src/elements/angular/FormLogic.js",
+      "src/elements/angular/DataTable.js",
+      "src/resources/AngularBootstrapper.js"
     ],
     "apploader" : [
       "src/apploader.js"

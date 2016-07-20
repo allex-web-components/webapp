@@ -24,14 +24,14 @@
 
   WebElement.prototype.initialize = function () {
     BasicElement.prototype.initialize.call(this);
-    this.$element = this.__parent.$element.find('#'+this.get('id'));
+    this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
     this.set_actual(this.get('actual'));
   };
 
   WebElement.prototype.set_actual = function (val) {
-    BasicElement.prototype.set_actual.call(this, val);
-    if (!this.$element) return;
+    var ret = BasicElement.prototype.set_actual.call(this, val);
+    if (!this.$element) return ret;
     if (val) {
       if (this.loaded) {
         this.show();
@@ -43,9 +43,20 @@
       }
     }else{
       this.hide();
-      this.unload();
       this.set('loaded', false);
     }
+    return ret;
+  };
+
+  WebElement.prototype.set_loaded = function (val) {
+    if (this.loaded == val) return false;
+    var prev = this.loaded;
+    this.loaded = val;
+    if (!val && prev) {
+      this.unload();
+    }
+
+    return true;
   };
 
   WebElement.prototype.load = function () {
@@ -61,9 +72,7 @@
   };
 
 
-  WebElement.prototype.unload = function () {
-    throw new Error('Unload not implemented');
-  };
+  WebElement.prototype.unload = lib.dummyFunc;
 
   WebElement.prototype.show = function () {
     this.$element.show();
@@ -71,6 +80,40 @@
 
   WebElement.prototype.hide = function () {
     this.$element.hide();
+  };
+
+  WebElement.prototype.getElement = function (path) {
+    if (path.indexOf('.$element.') === 0) {
+      return this.$element.find('#'+path.replace('.$element.', ''));
+    }
+
+    path = path.replace (/^\./, '');
+
+    if (path === '$element')  {
+      return this.$element;
+    }
+
+    if (path === '.') {
+      return this.getMeAsElement();
+    }
+
+    return this.childAtPath(path);
+  };
+
+  WebElement.prototype.findById = function (id) {
+    if ('$element' === id) return this.$element;
+    return BasicElement.prototype.findById.call(this,id);
+  };
+
+  WebElement.prototype.getMeAsElement = function () {
+    //return this.$element;
+    return this;
+  };
+
+  WebElement.prototype.findDomReference = function (type){
+    if (!type) throw new Error('No type given');
+    var id = this.id;
+    return jQuery('#references #references_'+id+' #references_'+id+'_'+type);
   };
 
   WebElement.ResourcesSchema = {
@@ -88,5 +131,6 @@
   };
 
   module.abstractions.WebElement = WebElement;
+  applib.registerElementType ('WebElement',WebElement);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
