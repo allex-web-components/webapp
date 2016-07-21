@@ -2,12 +2,12 @@
   "js": {
     "lib": [
       "src/index.js",
-      "src/abstractions/WebElement.js",
-      "src/abstractions/WebPage.js",
+      "src/elements/WebElement.js",
       "src/resources/AnimatedImageZipLibrary.js",
       "src/resources/WebFont.js",
       "src/resources/Throbber.js",
-      "src/mixins/DataElementMixIn.js"
+      "src/mixins/DataElementMixIn.js",
+      "src/elements/DataAwareElement.js"
     ],
     "vektr" : [
       "src/elements/VektrCanvas.js"

@@ -3,7 +3,6 @@
 
   var lib = allex.lib,
     BasicAngularController = lib.BasicAngularController,
-    WebElement = module.abstractions.WebElement,
     q = lib.q;
 
     function DataElementMixIn () {

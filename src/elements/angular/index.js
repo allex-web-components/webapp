@@ -38,6 +38,6 @@ angular.module('allex_applib', []);
   };
 
 
-  module.abstractions.AngularDataAwareController = AngularDataAwareController;
-  module.abstractions.BasicAngularElementController = BasicAngularElementController;
+  module.elements.AngularDataAwareController = AngularDataAwareController;
+  module.elements.BasicAngularElementController = BasicAngularElementController;
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));

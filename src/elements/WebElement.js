@@ -83,6 +83,10 @@
   };
 
   WebElement.prototype.getElement = function (path) {
+    //e, aj vidi u cemu je ovde fora ... jel .$element ili je $element ili sta je koji moj ... i gledaj samo pocetak sa replace ....
+    if (path.indexOf('$element.') === 0){
+      return this.$element.find('#'+path.replace('$element.', ''));
+    }
     if (path.indexOf('.$element.') === 0) {
       return this.$element.find('#'+path.replace('.$element.', ''));
     }
@@ -130,7 +134,7 @@
     }
   };
 
-  module.abstractions.WebElement = WebElement;
+  module.elements.WebElement = WebElement;
   applib.registerElementType ('WebElement',WebElement);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);

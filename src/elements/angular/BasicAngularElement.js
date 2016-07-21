@@ -3,7 +3,7 @@
 
   var lib = allex.lib,
     BasicAngularController = lib.BasicAngularController,
-    WebElement = module.abstractions.WebElement,
+    WebElement = module.elements.WebElement,
     q = lib.q;
 
     function BasicAngularElement (id, options) {

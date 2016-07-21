@@ -72,6 +72,7 @@
   JQueryEventEmitterHandler.prototype.listenToEvent = function (cb) {
     if (!this.listener) {
       this.listener = cb;
+      //console.log('subscribing ...', this.name, this.emitter.attr('id'));
       this.emitter.on(this.name, cb);
       return this;
     } 
@@ -84,6 +85,7 @@
       lib.isFunction(emitterwithname.emitter.bind) &&
       lib.isFunction(emitterwithname.emitter.unbind) &&
       lib.isFunction(emitterwithname.emitter.trigger)) {
+
       return JQueryEventEmitterHandler;
     }
   };
@@ -91,7 +93,6 @@
 
 
   allex.WEB_COMPONENTS.allex_web_webappcomponent = {
-    abstractions : {},
     resources : {},
     APP : null,
     elements: {},

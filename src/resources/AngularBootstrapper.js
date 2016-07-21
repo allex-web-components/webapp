@@ -26,6 +26,7 @@
     var deps = this.getConfigVal('angular_dependencies');
     if (deps) {
       if (deps.indexOf('allex_applib') < 0) deps.push ('allex_applib');
+      if (deps.indexOf('allex__web_angularcomponent') < 0) deps.push ('allex__web_angularcomponent');
     }else{
       deps = ['allex_applib'];
     }

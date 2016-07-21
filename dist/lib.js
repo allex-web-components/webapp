@@ -72,6 +72,7 @@
   JQueryEventEmitterHandler.prototype.listenToEvent = function (cb) {
     if (!this.listener) {
       this.listener = cb;
+      //console.log('subscribing ...', this.name, this.emitter.attr('id'));
       this.emitter.on(this.name, cb);
       return this;
     } 
@@ -84,6 +85,7 @@
       lib.isFunction(emitterwithname.emitter.bind) &&
       lib.isFunction(emitterwithname.emitter.unbind) &&
       lib.isFunction(emitterwithname.emitter.trigger)) {
+
       return JQueryEventEmitterHandler;
     }
   };
@@ -91,7 +93,6 @@
 
 
   allex.WEB_COMPONENTS.allex_web_webappcomponent = {
-    abstractions : {},
     resources : {},
     APP : null,
     elements: {},
@@ -184,6 +185,10 @@
   };
 
   WebElement.prototype.getElement = function (path) {
+    //e, aj vidi u cemu je ovde fora ... jel .$element ili je $element ili sta je koji moj ... i gledaj samo pocetak sa replace ....
+    if (path.indexOf('$element.') === 0){
+      return this.$element.find('#'+path.replace('$element.', ''));
+    }
     if (path.indexOf('.$element.') === 0) {
       return this.$element.find('#'+path.replace('.$element.', ''));
     }
@@ -231,12 +236,10 @@
     }
   };
 
-  module.abstractions.WebElement = WebElement;
+  module.elements.WebElement = WebElement;
   applib.registerElementType ('WebElement',WebElement);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
-
 //samo da te vidim
 (function (allex, module, applib) {
   'use strict';
@@ -427,7 +430,6 @@
 
   var lib = allex.lib,
     BasicAngularController = lib.BasicAngularController,
-    WebElement = module.abstractions.WebElement,
     q = lib.q;
 
     function DataElementMixIn () {
@@ -449,5 +451,37 @@
     };
 
     module.mixins.DataElementMixIn = DataElementMixIn;
+
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);
+//samo da te vidim
+(function (allex, module, applib) {
+  'use strict';
+
+  var lib = allex.lib,
+    WebElement = module.elements.WebElement;
+
+  function DataAwareElement (id, options) {
+    WebElement.call(this, id, options);
+    this.data = null;
+  }
+  lib.inherit (DataAwareElement, WebElement);
+  DataAwareElement.prototype.__cleanUp = function () {
+    this.data = null;
+    WebElement.prototype.__cleanUp.call(this);
+  };
+
+  DataAwareElement.prototype.set_data = function (val) {
+    if (this.data === val) return false;
+    this.data = val;
+    var dh = this.getConfigVal ('dataHandler');
+    if (lib.isFunction(dh)) {
+      dh(this.$element, val);
+    }
+    return true;
+  };
+
+  module.elements.DataAwareElement = DataAwareElement;
+  applib.registerElementType ('DataAwareElement',DataAwareElement);
+
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);

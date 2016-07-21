@@ -2,7 +2,7 @@
   'use strict';
 
   var lib = allex.lib,
-    AngularDataAwareController = module.abstractions.AngularDataAwareController,
+    AngularDataAwareController = module.elements.AngularDataAwareController,
     DataElementMixIn = module.mixins.DataElementMixIn,
     BasicAngularElement = module.elements.BasicAngularElement,
     CBMapable = lib.CBMapable,

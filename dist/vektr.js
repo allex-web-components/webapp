@@ -2,7 +2,7 @@
   'use strict';
 
   var lib = allex.lib,
-    WebElement = module.abstractions.WebElement,
+    WebElement = module.elements.WebElement,
     BasicElement = applib.BasicElement,
     q = lib.q;
 
