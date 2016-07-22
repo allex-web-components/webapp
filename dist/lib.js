@@ -529,5 +529,4 @@
   module.elements.DataAwareElement = DataAwareElement;
   applib.registerElementType ('DataAwareElement',DataAwareElement);
 
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);

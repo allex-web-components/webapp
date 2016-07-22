@@ -112,7 +112,7 @@ angular.module('allex_applib', []);
     AngularElement.prototype.set_data = function (val) {
       var ret = DataElementMixIn.prototype.set_data.call(this, val);
 
-      if (lib.isUndef(ret) || ret) { ///if undefined was return as wel as true update data ...
+      if (DataElementMixIn.prototype.hasDataChanged.call(this, ret)){
         this.$scopectrl.set('data', this.data);
       }
       return ret;
@@ -156,6 +156,8 @@ angular.module('allex_applib', []);
 (function (allex, module, applib, angular_module) {
   'use strict';
 
+  ///MIND THE FACT that form name should not contain - in their name ... for example form-bla will not work ... inspect that ...
+
   var lib = allex.lib,
     BasicAngularElementController = module.elements.BasicAngularElementController,
     BasicAngularElement = module.elements.BasicAngularElement,
@@ -198,6 +200,7 @@ angular.module('allex_applib', []);
 
   AngularFormLogic.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
+    console.log('da li se ovo desi?');
     this.$element.attr ({ 'data-allex-angular-form-logic': ''});
 
 

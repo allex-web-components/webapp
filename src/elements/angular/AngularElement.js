@@ -28,7 +28,7 @@
     AngularElement.prototype.set_data = function (val) {
       var ret = DataElementMixIn.prototype.set_data.call(this, val);
 
-      if (lib.isUndef(ret) || ret) { ///if undefined was return as wel as true update data ...
+      if (DataElementMixIn.prototype.hasDataChanged.call(this, ret)){
         this.$scopectrl.set('data', this.data);
       }
       return ret;

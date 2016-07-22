@@ -1,6 +1,8 @@
 (function (allex, module, applib, angular_module) {
   'use strict';
 
+  ///MIND THE FACT that form name should not contain - in their name ... for example form-bla will not work ... inspect that ...
+
   var lib = allex.lib,
     BasicAngularElementController = module.elements.BasicAngularElementController,
     BasicAngularElement = module.elements.BasicAngularElement,
@@ -43,6 +45,7 @@
 
   AngularFormLogic.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
+    console.log('da li se ovo desi?');
     this.$element.attr ({ 'data-allex-angular-form-logic': ''});
 
 
