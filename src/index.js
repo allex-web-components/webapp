@@ -2,7 +2,8 @@
   'use strict';
 
   var lib = allex.lib,
-    EventEmitterHandler = linkinglib.eventEmitterHandlingRegistry.EventEmitterHandler;
+    EventEmitterHandler = linkinglib.eventEmitterHandlingRegistry.EventEmitterHandler,
+    PropertyTargetHandler = linkinglib.propertyTargetHandlingRegistry.PropertyTargetHandler;
   
   function JQueryChangeEventEmitterHandler (eventemitter, eventname) {
     EventEmitterHandler.call(this, eventemitter, eventname); 
@@ -91,7 +92,52 @@
   };
   linkinglib.eventEmitterHandlingRegistry.register(JQueryEventEmitterHandler.recognizer);
 
+ 
+  function JQueryPropertyTargetHandler (propertycarrier, propertyname) {
+    PropertyTargetHandler.call(this, propertycarrier, propertyname); 
+    var sp = propertyname.split('.');
+    this.method = sp[0] === 'class' ? 'addClass' : sp[0];
+    this.removeMethod = this._chooseRemover();
+    this.prop = sp[1];
+  }
 
+  lib.inherit(JQueryPropertyTargetHandler, PropertyTargetHandler);
+  JQueryPropertyTargetHandler.prototype.destroy = function () {
+    this.removeMethod = null;
+    this.method = null;
+    this.prop = null;
+    this.method = null;
+    PropertyTargetHandler.prototype.destroy.call(this);
+  };
+
+  JQueryPropertyTargetHandler.prototype._chooseRemover = function () {
+    switch (this.method) {
+      case 'attr': return 'removeAttr';
+      case 'class':return 'removeClass';
+      case 'prop': return 'removeProp';
+      case 'css' : return 'css';
+    }
+  };
+
+  JQueryPropertyTargetHandler.prototype.handle = function (val) {
+    this.carrier[lib.isUndef(val) ? this.removeMethod : this.method](this.prop, val);
+  };
+  
+  JQueryPropertyTargetHandler.recognizer = function (carrierwithname) {
+    var sp = carrierwithname.name.split('.');
+    if (!(sp[0] === 'attr' || sp[0] === 'css' || sp[0] === 'prop' || sp[0] === 'class')) return;
+
+    if (carrierwithname &&
+      carrierwithname.carrier &&
+      lib.isFunction(carrierwithname.carrier.on) &&
+      lib.isFunction(carrierwithname.carrier.off) &&
+      lib.isFunction(carrierwithname.carrier.bind) &&
+      lib.isFunction(carrierwithname.carrier.unbind) &&
+      lib.isFunction(carrierwithname.carrier.trigger)) {
+      return JQueryPropertyTargetHandler;
+    }
+  };
+  linkinglib.propertyTargetHandlingRegistry.register(JQueryPropertyTargetHandler.recognizer);
   allex.WEB_COMPONENTS.allex_web_webappcomponent = {
     resources : {},
     APP : null,
