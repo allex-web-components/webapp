@@ -8,16 +8,16 @@
     CBMapable = lib.CBMapable,
     q = lib.q;
 
-  function DataTable (id, options) {
+  function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
     DataElementMixIn.call(this);
     this.afterEdit = new lib.HookCollection();
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
   }
-  lib.inherit(DataTable, BasicAngularElement);
-  DataElementMixIn.addMethods(DataTable);
+  lib.inherit(AngularDataTable, BasicAngularElement);
+  DataElementMixIn.addMethods(AngularDataTable);
 
-  DataTable.prototype.__cleanUp = function () {
+  AngularDataTable.prototype.__cleanUp = function () {
     this.afterEdit.destroy();
     this.afterEdit = null;
     DataElementMixIn.prototype.__cleanUp.call(this);
@@ -28,7 +28,7 @@
     if (item.enableCellEdit) return true;
   }
 
-  DataTable.prototype.initialize = function () {
+  AngularDataTable.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
 
     var editable = lib.traverseConditionally (this.getConfigVal('grid.columnDefs'), checkIfEditable);
@@ -40,7 +40,7 @@
     }
     $container.addClass('grid');
 
-    this.$element.attr({'data-allex-data-table': ''});
+    this.$element.attr({'data-allex-angular-data-table': ''});
     this.$element.append($container);
     var $actions = this.findDomReference('actions');
 
@@ -50,7 +50,7 @@
     this.config.grid.columnDefs.unshift ({ displayName: $actions.attr('data-title') || 'Actions', cellTemplate: $actions.html(), field: '-'});
   };
 
-  DataTable.prototype._onScope = function (_ctrl) {
+  AngularDataTable.prototype._onScope = function (_ctrl) {
     var _cbmap = {
       appendNewRow : this.appendNewRow.bind(this)
     };
@@ -65,7 +65,12 @@
     _ctrl.set('raise', this.$element.trigger.bind(this.$element));
   };
 
-  DataTable.prototype.appendNewRow = function (current_length) {
+  AngularDataTable.prototype.set_data = function (data) {
+    var ret = DataElementMixIn.prototype.set_data.call(this,data);
+    if (this.hasDataChanged(ret)) this.$scopectrl.set('data', data);
+  };
+
+  AngularDataTable.prototype.appendNewRow = function (current_length) {
     var row = {};
 
     if (this.getConfigVal('config.bSetNewRowProps')) {
@@ -76,36 +81,36 @@
     return f ? f(current_length, row) : row;
   };
 
-  DataTable.prototype.get_rows = function () {
+  AngularDataTable.prototype.get_rows = function () {
     return this.$scopectrl.api ? this.$scopectrl.api.grid.rows : null;
   };
 
-  DataTable.prototype.getElement = function (path) {
+  AngularDataTable.prototype.getElement = function (path) {
     if ('$element' === path) return this.$element;
     return BasicAngularElement.prototype.getElement.call(this, path);
   };
 
-  DataTable.prototype.set_actual = function (val) {
+  AngularDataTable.prototype.set_actual = function (val) {
     var ret = BasicAngularElement.prototype.set_actual.call(this, val),
       $window = $(window);
     lib.runNext ($window.resize.bind($window), 300); //crappy approach. but chceck if ui-grid does requires it, maybe you can fix it ;) ...
     return ret;
   };
 
-  DataTable.prototype.set_row_count = function (rc) {
+  AngularDataTable.prototype.set_row_count = function (rc) {
     ///TODO: proveri samo da li ce da okine event ...
     return this.$scopectrl.set('row_count', rc);
   };
 
-  DataTable.prototype.get_row_count = function () {
+  AngularDataTable.prototype.get_row_count = function () {
     return this.$scopectrl.get('row_count');
   };
 
-  module.elements.DataTable = DataTable;
-  applib.registerElementType('DataTable', DataTable);
+  module.elements.AngularDataTable = AngularDataTable;
+  applib.registerElementType('AngularDataTable', AngularDataTable);
 
   //This is angular part of code ... //and what about this ... raise ....
-  function AllexDataTableController ($scope, $parse) {
+  function AllexAngularDataTableController ($scope, $parse) {
     AngularDataAwareController.call(this, $scope);
     CBMapable.call(this);
     this.data = null;
@@ -117,11 +122,11 @@
     this._getActualData = null;
     this._listenToEditEvents = false;
   }
-  lib.inherit (AllexDataTableController, AngularDataAwareController);
-  CBMapable.addMethods (AllexDataTableController);
+  lib.inherit (AllexAngularDataTableController, AngularDataAwareController);
+  CBMapable.addMethods (AllexAngularDataTableController);
 
 
-  AllexDataTableController.prototype.__cleanUp = function () {
+  AllexAngularDataTableController.prototype.__cleanUp = function () {
     this._getActualData = null;
     this._parse = null;
     this.rowCountChanged.destroy();
@@ -137,7 +142,7 @@
     AngularDataAwareController.prototype.__cleanUp.call(this);
   };
 
-  AllexDataTableController.prototype.set_gridOptions = function (val) {
+  AllexAngularDataTableController.prototype.set_gridOptions = function (val) {
     if (this.gridOptions === val) {
       return false;
     }
@@ -157,7 +162,7 @@
     }
   };
 
-  AllexDataTableController.prototype.set_api = function (api) {
+  AllexAngularDataTableController.prototype.set_api = function (api) {
     if (this.api === api) return;
     this.api = api;
     if (this._cbmap && this._cbmap.afterEdit) {
@@ -165,7 +170,7 @@
     }
   };
 
-  AllexDataTableController.prototype._onAfterEdit = function (rowEntity, colDef, newValue, oldValue) {
+  AllexAngularDataTableController.prototype._onAfterEdit = function (rowEntity, colDef, newValue, oldValue) {
     if (oldValue === newValue) return;
 
     this.call_cb('afterEdit', [{
@@ -178,11 +183,11 @@
 
   function doReturn (what) { return what; }
 
-  AllexDataTableController.prototype.raiseEvent = function (name, val){
+  AllexAngularDataTableController.prototype.raiseEvent = function (name, val){
     this.raise(name, val);
   };
 
-  AllexDataTableController.prototype.set_row_count = function (val) {
+  AllexAngularDataTableController.prototype.set_row_count = function (val) {
     if (!this._getActualData) return false; ///TODO ...
 
     var rows = this._getActualData();
@@ -205,21 +210,21 @@
     return true;
   };
 
-  AllexDataTableController.prototype.get_row_count = function () {
+  AllexAngularDataTableController.prototype.get_row_count = function () {
     if (!this._getActualData) return null;
     var d = this._getActualData();
     return lib.isArray(d) ? d.length : null;
   };
 
-  angular_module.controller('allexDataTableController', ['$scope', '$parse', function ($scope, $parse) {
-    new AllexDataTableController($scope, $parse);
+  angular_module.controller('allexAngularDataTableController', ['$scope', '$parse', function ($scope, $parse) {
+    new AllexAngularDataTableController($scope, $parse);
   }]);
 
-  angular_module.directive ('allexDataTable', [function () {
+  angular_module.directive ('allexAngularDataTable', [function () {
     return {
       restrict : 'A',
       scope: true,
-      controller: 'allexDataTableController',
+      controller: 'allexAngularDataTableController',
       link : function ($scope, $el, $attribs) {
         $scope._ctrl.elementReady ($el);
       }

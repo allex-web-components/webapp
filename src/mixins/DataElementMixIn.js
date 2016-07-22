@@ -14,13 +14,20 @@
     };
 
     DataElementMixIn.prototype.set_data = function (data) {
+      var f = this.getConfigVal('dataHandler');
+      if (lib.isFunction(f)) return f(this.$element, data);
+
       if (this.data === data) return false;
       this.data = data;
-      this.$scopectrl.set('data', data);
+      return true;
+    };
+
+    DataElementMixIn.prototype.hasDataChanged = function (ret) {
+      return lib.isUndef(ret) || ret === true;
     };
 
     DataElementMixIn.addMethods = function (chld) {
-      lib.inheritMethods (chld, DataElementMixIn, 'set_data');
+      lib.inheritMethods (chld, DataElementMixIn, 'set_data', 'hasDataChanged');
     };
 
     module.mixins.DataElementMixIn = DataElementMixIn;

@@ -487,13 +487,20 @@
     };
 
     DataElementMixIn.prototype.set_data = function (data) {
+      var f = this.getConfigVal('dataHandler');
+      if (lib.isFunction(f)) return f(this.$element, data);
+
       if (this.data === data) return false;
       this.data = data;
-      this.$scopectrl.set('data', data);
+      return true;
+    };
+
+    DataElementMixIn.prototype.hasDataChanged = function (ret) {
+      return lib.isUndef(ret) || ret === true;
     };
 
     DataElementMixIn.addMethods = function (chld) {
-      lib.inheritMethods (chld, DataElementMixIn, 'set_data');
+      lib.inheritMethods (chld, DataElementMixIn, 'set_data', 'hasDataChanged');
     };
 
     module.mixins.DataElementMixIn = DataElementMixIn;
@@ -504,26 +511,19 @@
   'use strict';
 
   var lib = allex.lib,
-    WebElement = module.elements.WebElement;
+    WebElement = module.elements.WebElement,
+    DataElementMixIn = module.mixins.DataElementMixIn;
 
   function DataAwareElement (id, options) {
     WebElement.call(this, id, options);
-    this.data = null;
+    DataElementMixIn.call(this);
   }
   lib.inherit (DataAwareElement, WebElement);
-  DataAwareElement.prototype.__cleanUp = function () {
-    this.data = null;
-    WebElement.prototype.__cleanUp.call(this);
-  };
+  DataElementMixIn.addMethods (DataAwareElement);
 
-  DataAwareElement.prototype.set_data = function (val) {
-    if (this.data === val) return false;
-    this.data = val;
-    var dh = this.getConfigVal ('dataHandler');
-    if (lib.isFunction(dh)) {
-      dh(this.$element, val);
-    }
-    return true;
+  DataAwareElement.prototype.__cleanUp = function () {
+    DataElementMixIn.prototype.__cleanUp.call(this);
+    WebElement.prototype.__cleanUp.call(this);
   };
 
   module.elements.DataAwareElement = DataAwareElement;

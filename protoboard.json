@@ -16,9 +16,9 @@
       "src/angular.js",
       "src/elements/angular/index.js",
       "src/elements/angular/BasicAngularElement.js",
-      "src/elements/angular/ActiveDOM.js",
-      "src/elements/angular/FormLogic.js",
-      "src/elements/angular/DataTable.js",
+      "src/elements/angular/AngularElement.js",
+      "src/elements/angular/AngularFormLogic.js",
+      "src/elements/angular/AngularDataTable.js",
       "src/resources/AngularBootstrapper.js"
     ],
     "apploader" : [
