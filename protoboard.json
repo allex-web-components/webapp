@@ -10,7 +10,8 @@
       "src/elements/DataAwareElement.js"
     ],
     "vektr" : [
-      "src/elements/VektrCanvas.js"
+      "src/elements/VektrCanvas.js",
+      "src/elements/VektrElement.js"
     ],
     "angular": [
       "src/angular.js",

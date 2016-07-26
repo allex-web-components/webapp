@@ -4,6 +4,7 @@
   var lib = allex.lib,
     WebElement = module.elements.WebElement,
     BasicElement = applib.BasicElement,
+    ctrl = vektr.ctrl,
     q = lib.q;
 
   var CANVAS_SCHEMA = {
@@ -33,16 +34,38 @@
       klass : { type : "string" }
     },
     additionalProperties : false,
-    required : ['debug', 'autoresize', 'mindOrientation', 'svg', 'ctor']
+    required : ['debug', 'autoresize', 'mindOrientation', 'svg']
+  };
+
+
+  function Integrator (svgurl, controller, path) {
+    ctrl.SVGInstantiator.call(this, svgurl, controller, path);
+  }
+  lib.inherit(Integrator, ctrl.SVGInstantiator);
+  Integrator.prototype.__cleanUp = function () {
+    ctrl.SVGInstantiator.prototype.__cleanUp.call(this);
+  };
+
+  Integrator.prototype.runOn = function (elid, vektrCanvasObj) {
+    if (vektrCanvasObj.isOldSchool()){
+      ctrl.SVGInstantiator.prototype.runOn.call(this, elid);
+    }else{
+    }
   };
 
   function VektrCanvas (id, options) {
     WebElement.call(this, id, options);
     this.scene = null;
     this.renderers = null;
+    this.vektrEvent = new lib.HookCollection ();
+    this.data = null;
   }
   lib.inherit (VektrCanvas, WebElement);
   VektrCanvas.prototype.__cleanUp = function () {
+    this.vektrEvent.destroy();
+    this.vektrEvent = null;
+    this.data = null;
+
     ///TODO ...
     WebElement.prototype.__cleanUp.call(this);
   };
@@ -60,17 +83,6 @@
     return d.promise;
   };
 
-  VektrCanvas.prototype.initialize = function () {
-    BasicElement.prototype.initialize.call(this);
-    this.$element = this.__parent.$element.find('#'+this.get('id'));
-    if (!(this.$element && this.$element.length)){
-      this.$element = $('<div>').attr('id',this.get('id'));
-      this.$element.addClass(this.getConfigVal('klass'));
-      this.__parent.$element.append(this.$element);
-    }
-  };
-
-
   VektrCanvas.prototype.load = function () {
     return WebElement.prototype.load.call(this).then(this._onLoaded.bind(this));
   };
@@ -78,8 +90,9 @@
   VektrCanvas.prototype._onLoaded = function () {
     this.scene = new vektr.compositing.Scene(this.get('id'), this.config);
     var svg = this.getConfigVal ('svg'),
-      ctor = eval(this.getConfigVal('ctor')),// jshint ignore:line
-      p;  
+      pctor = this.getConfigVal('ctor'),
+      ctor = pctor ? eval(pctor) : Integrator,// jshint ignore:line
+      p;
 
     if (!lib.isFunction (ctor)) return q.reject(new Error('Failed to instantiate SVG, ctor is not a function'));
     this.renderers = [];
@@ -98,8 +111,7 @@
   };
 
   VektrCanvas.prototype._runRenderers = function () {
-    console.log('ABOUT TO RUN RENDERERS ...');
-    this.renderers.forEach (lib.doMethod.bind(null, 'runOn', [this.get('id')]));
+    this.renderers.forEach (lib.doMethod.bind(null, 'runOn', [this.get('id'), this]));
     return q.resolve(true);
   };
 
@@ -118,6 +130,18 @@
   VektrCanvas.prototype.set_actual = function (val) {
     WebElement.prototype.set_actual.call(this, val);
     window.onresize();
+  };
+
+  VektrCanvas.prototype.createElement = function (desc) {
+    if (this.getConfigVal('ctor')) {
+      return BasicElement.prototype.createElement.call(this, desc);
+    }
+
+    console.log('I ?!?!? Sta cemo sad?', desc);
+  };
+
+  VektrCanvas.prototype.isOldSchool = function () {
+    return !!this.getConfigVal ('ctor') ;
   };
 
   module.elements.VektrCanvas = VektrCanvas;

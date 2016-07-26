@@ -63,8 +63,4 @@
         }
       };
     }]);
-
-
-    console.log('SAMO DA TE VIDIM ..');
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));

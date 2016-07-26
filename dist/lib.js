@@ -319,7 +319,7 @@
     this.zl = new ZipLoader(extractor ? new RegExp(extractor) : null);
     var p = this.zl.load(this.getConfigVal('url'));
 
-    p.done (console.log.bind(console, 'gotovo'), console.log.bind(console, 'puklo'));
+    p.done (console.log.bind(console, 'Zip '+this.getConfigVal('url')+' has been unpacked successfully'), console.log.bind(console, 'Failed to unpack '+this.getConfigVal('url')));
 
     return p;
   };

@@ -45,7 +45,6 @@
 
   AngularFormLogic.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
-    console.log('da li se ovo desi?');
     this.$element.attr ({ 'data-allex-angular-form-logic': ''});
 
 

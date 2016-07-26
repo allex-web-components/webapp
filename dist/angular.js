@@ -147,10 +147,6 @@ angular.module('allex_applib', []);
         }
       };
     }]);
-
-
-    console.log('SAMO DA TE VIDIM ..');
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
 //samo da te vidim
 (function (allex, module, applib, angular_module) {
@@ -200,7 +196,6 @@ angular.module('allex_applib', []);
 
   AngularFormLogic.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
-    console.log('da li se ovo desi?');
     this.$element.attr ({ 'data-allex-angular-form-logic': ''});
 
 
