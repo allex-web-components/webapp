@@ -239,6 +239,8 @@
       return this.$element.find('#'+path.replace('.$element.', ''));
     }
 
+
+
     path = path.replace (/^\./, '');
 
     if (path === '$element')  {

@@ -11,30 +11,17 @@
     type : "object",
     properties : {
       svg: {
-        anyOf : [
-          {
-            type : "object",
-            properties : {
-              horizontal : { type : "string" },
-              vertical : { type : "string" }
-            },
-            additionalProperties : false,
-            required : ['horizontal']
-          },
-          {
-            type : "string"
-          }
-        ]
+        type : "string"
       },
       autoresize : { type : "boolean" },
       debug : { type : "boolean" },
-      mindOrientation : {type : "boolean" },
       ctor : {type : "string"},
       resources : WebElement.ResourcesSchema,
-      klass : { type : "string" }
+      klass : { type : "string" },
+      elements : {type: "array" },
     },
     additionalProperties : false,
-    required : ['debug', 'autoresize', 'mindOrientation', 'svg']
+    required : ['debug', 'autoresize','svg']
   };
 
 
@@ -50,13 +37,14 @@
     if (vektrCanvasObj.isOldSchool()){
       ctrl.SVGInstantiator.prototype.runOn.call(this, elid);
     }else{
+      ///TODO !!!
     }
   };
 
   function VektrCanvas (id, options) {
     WebElement.call(this, id, options);
     this.scene = null;
-    this.renderers = null;
+    this.renderer = null;
     this.vektrEvent = new lib.HookCollection ();
     this.data = null;
   }
@@ -65,7 +53,6 @@
     this.vektrEvent.destroy();
     this.vektrEvent = null;
     this.data = null;
-
     ///TODO ...
     WebElement.prototype.__cleanUp.call(this);
   };
@@ -73,7 +60,7 @@
 
   function _onVektrLoaded (vcanvas, defer, svg) {
     if (!svg) return defer.reject(new Error('failed to load svg'));
-    vcanvas.renderers.push (svg);
+    vcanvas.renderer = svg;
     defer.resolve(svg);
   }
 
@@ -95,10 +82,9 @@
       p;
 
     if (!lib.isFunction (ctor)) return q.reject(new Error('Failed to instantiate SVG, ctor is not a function'));
-    this.renderers = [];
+    p = this._loadSVG(svg, ctor);
 
     if (lib.isString(svg)) {
-      p = this._loadSVG(svg, ctor);
     }else{
       p = q.all([this._loadSVG(svg.horizontal, ctor), this._loadSVG(svg.vertical, ctor)]);
     }
@@ -111,7 +97,7 @@
   };
 
   VektrCanvas.prototype._runRenderers = function () {
-    this.renderers.forEach (lib.doMethod.bind(null, 'runOn', [this.get('id'), this]));
+    this.renderer.runOn(this.get('id'), this);
     return q.resolve(true);
   };
 
@@ -122,8 +108,7 @@
   VektrCanvas.prototype.DEFAULT_CONFIG = function () {
     return {
       debug : true,
-      autoresize: true,
-      mindOrientation : false
+      autoresize: true
     };
   };
 
@@ -136,8 +121,7 @@
     if (this.getConfigVal('ctor')) {
       return BasicElement.prototype.createElement.call(this, desc);
     }
-
-    console.log('I ?!?!? Sta cemo sad?', desc);
+    console.log('============>>>', this.renderer);
   };
 
   VektrCanvas.prototype.isOldSchool = function () {
