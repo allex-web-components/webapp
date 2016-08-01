@@ -245,7 +245,7 @@ angular.module('allex_applib', []);
     var $el = $('<input>').attr(attrs);
     this._prepareForAngular($el);
     this.$form.append ($el);
-    this.$form.append($('<span> {{_ctrl.data.'+name+' | json}}</span>'));
+    //this.$form.append($('<span> {{_ctrl.data.'+name+' | json}}</span>'));
   };
 
   AngularFormLogic.prototype.findByFieldName = function (name) {

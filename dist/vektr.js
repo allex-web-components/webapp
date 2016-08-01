@@ -83,12 +83,6 @@
 
     if (!lib.isFunction (ctor)) return q.reject(new Error('Failed to instantiate SVG, ctor is not a function'));
     p = this._loadSVG(svg, ctor);
-
-    if (lib.isString(svg)) {
-    }else{
-      p = q.all([this._loadSVG(svg.horizontal, ctor), this._loadSVG(svg.vertical, ctor)]);
-    }
-
     return p.then (this._runRenderers.bind(this));
   };
 
@@ -98,6 +92,7 @@
 
   VektrCanvas.prototype._runRenderers = function () {
     this.renderer.runOn(this.get('id'), this);
+    window.onresize();
     return q.resolve(true);
   };
 
@@ -121,7 +116,6 @@
     if (this.getConfigVal('ctor')) {
       return BasicElement.prototype.createElement.call(this, desc);
     }
-    console.log('============>>>', this.renderer);
   };
 
   VektrCanvas.prototype.isOldSchool = function () {

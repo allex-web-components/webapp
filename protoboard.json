@@ -9,6 +9,9 @@
       "src/mixins/DataElementMixIn.js",
       "src/elements/DataAwareElement.js"
     ],
+    "howler" : [
+      "src/resources/Howler.js"
+    ],
     "vektr" : [
       "src/elements/VektrCanvas.js",
       "src/elements/VektrElement.js"
