@@ -87,6 +87,14 @@
   };
 
   VektrCanvas.prototype.unload = function () {
+    this.renderer.destroy();
+    this.renderer = null;
+
+    this.scene.destroy();
+    this.scene = null;
+
+    vektr.unload();
+
     this.$element.empty();
   };
 

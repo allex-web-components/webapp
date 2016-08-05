@@ -397,6 +397,7 @@ angular.module('allex_applib', []);
     var editable = lib.traverseConditionally (this.getConfigVal('grid.columnDefs'), checkIfEditable);
     var $container = $('<div class="table_container"></div>');
     $container.attr('ui-grid', '_ctrl.gridOptions');
+    $container.attr('ui-grid-auto-resize', '');
 
     if (editable) {
       $container.attr('ui-grid-edit','');
@@ -453,12 +454,6 @@ angular.module('allex_applib', []);
     return BasicAngularElement.prototype.getElement.call(this, path);
   };
 
-  AngularDataTable.prototype.set_actual = function (val) {
-    var ret = BasicAngularElement.prototype.set_actual.call(this, val),
-      $window = $(window);
-    lib.runNext ($window.resize.bind($window), 300); //crappy approach. but chceck if ui-grid does requires it, maybe you can fix it ;) ...
-    return ret;
-  };
 
   AngularDataTable.prototype.set_row_count = function (rc) {
     ///TODO: proveri samo da li ce da okine event ...
@@ -476,7 +471,7 @@ angular.module('allex_applib', []);
   function AllexAngularDataTableController ($scope, $parse) {
     AngularDataAwareController.call(this, $scope);
     CBMapable.call(this);
-    this.data = null;
+    this.data = [];
     this.gridOptions = null;
     this.raise = null;
     this.api = null;

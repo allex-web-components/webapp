@@ -36,7 +36,9 @@
           required : ['files', 'name']
         },
         minItems : 1
-      }
+      },
+      baseURL : {type : 'string'},
+      volume : {type : 'number'}
     },
     additionalProperties  : false
   };
@@ -55,7 +57,13 @@
 
 
   HowlerResource.prototype.load = function () {
-    var p = lib.q.all(this.getConfigVal ('sounds').map(this._loadASound.bind(this)));
+    var defaults = {
+      baseURL : this.getConfigVal('baseURL'),
+      volume : this.getConfigVal('volume')
+    };
+
+
+    var p = lib.q.all(this.getConfigVal ('sounds').map(this._loadASound.bind(this, defaults)));
     p.done(console.log.bind(console, 'done'), console.log.bind(console, 'failed'));
     return p;
   };
@@ -65,9 +73,10 @@
     return baseURL+'/'+url;
   }
 
-  HowlerResource.prototype._loadASound = function (item) {
-    var d = lib.q.defer();
-    var h =  new Howl ({
+  HowlerResource.prototype._loadASound = function (defaults, ni) {
+    var d = lib.q.defer(),
+      item = lib.extend ({}, defaults, ni),
+      h =  new Howl ({
       src : item.files.map (toURL.bind(null, item.baseURL)),
       autoplay: false,
       volume : 'volume' in item ? item.volume : 1,
@@ -91,11 +100,89 @@
     return this.sounds.get(sound); 
   };
 
+  HowlerResource.prototype.start = function (sound, sprite) {
+    ///will resolve promise once ended ...
+    var hs = this.getSound(sound);
+
+    if (!hs) return d.reject (new Error('No sound '+sound));
+
+    var d = lib.q.defer(), r = d.resolve.bind(d, true);
+    hs.on ('stop', r);
+    hs.on ('end', r);
+
+    hs.play(sprite);
+    return d.promise.then (_unhookStart.bind(null, hs, r));
+  };
+
+  function _unhookStart (hs, r) {
+    hs.off('stop', r);
+    hs.off('end', r);
+    return lib.q.resolve(true);
+  }
+
   //TODO: neka ga ovde za sad ... moze to i pametnije ...
   HowlerResource.prototype.muteAllSounds = Howler.mute.bind(Howler);
 
   HowlerResource.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
   HowlerResource.prototype.DEFAULT_CONFIG = function () { return null; };
+
+  HowlerResource.prototype.loopSound = function (name, sprite) {
+    var sound = this.getSound(name);
+    if (!sound) throw new Error('No sound registered: '+name);
+    return new AllexHowlerLooper (sound, sprite);
+  };
+
+
+  function AllexHowlerLooper (sound, sprite) {
+
+    if (sprite && !lib.isString(sprite)) {
+      throw new Error('Unable to play sound sprites upon something that is not a string: '+sprite);
+    }
+
+    this.sound = sound;
+    this.sprite = sprite;
+    this._cnt = null;
+    this._onend = this._onEnd.bind(this);
+    this.reps = null;
+    this.defer = null;
+  }
+
+  AllexHowlerLooper.prototype.destroy = function () {
+    this.sound = null;
+    this.sprite = null;
+    this._cnt = null;
+    this._onend = null;
+    this.reps = null;
+    this.defer = null;
+  };
+
+  AllexHowlerLooper.prototype.stop = function () {
+    if (this.defer) {
+      this.defer.resolve(true);
+    }
+    this.sound.off('end', this._onend);
+    this.sound.stop();
+    this.reps = null;
+  };
+
+  AllexHowlerLooper.prototype.start = function (repetitions, defer) {
+    this.reps = lib.isNumber(repetitions) && repetitions > 0 ? repetitions : null;
+    this.defer = defer;
+    this.sound.on('end', this._onend);
+    this._onEnd();
+  };
+
+  AllexHowlerLooper.prototype._onEnd = function () {
+    ///TODO: check if counting is ok ....
+    this.sound.play(this.sprite);
+    if (lib.isNull(this.reps)) {
+      ///infinite looping ...
+      return;
+    }
+    this.reps --;
+    if (this.reps) return;
+    this.stop();
+  };
 
   module.resources.HowlerResource = HowlerResource;
   applib.registerResourceType ('Howler', HowlerResource);
