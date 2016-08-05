@@ -92,6 +92,7 @@
 
     this.scene.destroy();
     this.scene = null;
+
     this.$element.empty();
   };
 

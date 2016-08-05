@@ -166,17 +166,20 @@
   };
 
   AllexHowlerLooper.prototype.start = function (repetitions, defer) {
+    if (!defer) defer = lib.q.defer();
     this.reps = lib.isNumber(repetitions) && repetitions > 0 ? repetitions : null;
     this.defer = defer;
     this.sound.on('end', this._onend);
+    console.log('treba da ponovim ', repetitions, 'puta');
     this._onEnd();
+
+
+    return defer.promise;
   };
 
   AllexHowlerLooper.prototype._onEnd = function () {
-    ///TODO: check if counting is ok ....
     this.sound.play(this.sprite);
     if (lib.isNull(this.reps)) {
-      ///infinite looping ...
       return;
     }
     this.reps --;

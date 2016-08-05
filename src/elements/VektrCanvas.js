@@ -93,8 +93,6 @@
     this.scene.destroy();
     this.scene = null;
 
-    vektr.unload();
-
     this.$element.empty();
   };
 
