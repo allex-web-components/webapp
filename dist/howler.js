@@ -122,6 +122,9 @@
 
   //TODO: neka ga ovde za sad ... moze to i pametnije ...
   HowlerResource.prototype.muteAllSounds = Howler.mute.bind(Howler);
+  HowlerResource.prototype.stopResourceSounds = function () {
+    this.sounds.traverse(lib.doMethod.bind(null, 'stop', null));
+  };
 
   HowlerResource.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
   HowlerResource.prototype.DEFAULT_CONFIG = function () { return null; };
@@ -170,7 +173,6 @@
     this.reps = lib.isNumber(repetitions) && repetitions > 0 ? repetitions : null;
     this.defer = defer;
     this.sound.on('end', this._onend);
-    console.log('treba da ponovim ', repetitions, 'puta');
     this._onEnd();
 
 
@@ -178,13 +180,13 @@
   };
 
   AllexHowlerLooper.prototype._onEnd = function () {
-    this.sound.play(this.sprite);
-    if (lib.isNull(this.reps)) {
+    if (!this.reps) {
+      this.stop();
       return;
     }
+
     this.reps --;
-    if (this.reps) return;
-    this.stop();
+    this.sound.play(this.sprite);
   };
 
   module.resources.HowlerResource = HowlerResource;
