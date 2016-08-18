@@ -213,10 +213,11 @@ angular.module('allex_applib', []);
     var $el = jQuery(el),
       name = $el.attr('name');
     ///tanko ti ovo, prijatelju ... form format dozvoljava i hash-ove i nizove ... ovim to nisi pokrio ....
-    $el.attr({
-      'data-ng-model':'_ctrl.data.'+name,
-      'data-allex-angular-validate' : '_ctrl.validation.'+name
-    });
+    $el.attr('data-allex-angular-validate' , '_ctrl.validation.'+name);
+
+    if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
+      $el.attr('data-ng-model', '_ctrl.data.'+name);
+    }
 
     this._validfields_l[name] = null;
   };
@@ -290,6 +291,10 @@ angular.module('allex_applib', []);
     console.log('AngularFormLogic ',this.id,' will say valid', val);
     this.valid = val;
     return true;
+  };
+
+  AngularFormLogic.prototype.empty = function () {
+    this.set('data', {});
   };
 
   module.elements.AngularFormLogic = AngularFormLogic;

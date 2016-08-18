@@ -80,11 +80,13 @@
       src : item.files.map (toURL.bind(null, item.baseURL)),
       autoplay: false,
       volume : 'volume' in item ? item.volume : 1,
-      loop : false,
+      loop : item.loop || false,
+      sprite : item.sprite || undefined,
       preload : true,
       mute : false,
       onload : d.resolve.bind(d, true),
-      onloaderror : this._failed.bind(this,d)
+      onloaderror : this._failed.bind(this,d),
+      html5: lib.isUndef(item.html5) ? true : item.html5
     });
 
     this.sounds.add (item.name, h);
@@ -143,11 +145,12 @@
     }
 
     this.sound = sound;
-    this.sprite = sprite;
+    this.sprite = sprite || undefined;
     this._cnt = null;
     this._onend = this._onEnd.bind(this);
-    this.reps = null;
+    this.reps = 0;
     this.defer = null;
+    this._time = null;
   }
 
   AllexHowlerLooper.prototype.destroy = function () {
@@ -157,6 +160,7 @@
     this._onend = null;
     this.reps = null;
     this.defer = null;
+    this._time = null;
   };
 
   AllexHowlerLooper.prototype.stop = function () {
@@ -165,27 +169,35 @@
     }
     this.sound.off('end', this._onend);
     this.sound.stop();
-    this.reps = null;
+    this.reps = 0;
   };
 
   AllexHowlerLooper.prototype.start = function (repetitions, defer) {
+    this._time = (new Date()).getTime();
     if (!defer) defer = lib.q.defer();
     this.reps = lib.isNumber(repetitions) && repetitions > 0 ? repetitions : null;
     this.defer = defer;
     this.sound.on('end', this._onend);
     this._onEnd();
-
-
     return defer.promise;
   };
 
   AllexHowlerLooper.prototype._onEnd = function () {
-    if (!this.reps) {
-      this.stop();
-      return;
-    }
+    var old = this._time;
+    this._time = (new Date()).getTime();
+    //console.log(this._time - old);
+    if (!lib.isNull(this.reps)) {
+      if (!this.reps) {
+        this.stop();
+        return;
+      }
 
-    this.reps --;
+      this.defer.notify({remaining: this.reps});
+
+      this.reps --;
+    }else{
+      this.defer.notify({remaining: Infinity});
+    }
     this.sound.play(this.sprite);
   };
 
