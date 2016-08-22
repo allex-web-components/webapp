@@ -9,9 +9,11 @@ angular.module('allex_applib', []);
 
   function BasicAngularElementController ($scope) {
     BasicAngularController.call(this, $scope);
+    this.raise = null;
   }
   lib.inherit (BasicAngularElementController, BasicAngularController);
   BasicAngularElementController.prototype.__cleanUp = function () {
+    this.raise = null;
     BasicAngularController.prototype.__cleanUp.call(this);
   };
 
@@ -19,6 +21,10 @@ angular.module('allex_applib', []);
     var elc = $el.data('allex_element');
     if (!elc) throw new Error('Missing allex element ...');
     elc.set('$scopectrl', this);
+  };
+
+  BasicAngularElementController.prototype.raiseEvent = function (name, val) {
+    this.raise(name, val);
   };
 
   function AngularDataAwareController ($scope) {

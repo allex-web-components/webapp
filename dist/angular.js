@@ -12,9 +12,11 @@ angular.module('allex_applib', []);
 
   function BasicAngularElementController ($scope) {
     BasicAngularController.call(this, $scope);
+    this.raise = null;
   }
   lib.inherit (BasicAngularElementController, BasicAngularController);
   BasicAngularElementController.prototype.__cleanUp = function () {
+    this.raise = null;
     BasicAngularController.prototype.__cleanUp.call(this);
   };
 
@@ -22,6 +24,10 @@ angular.module('allex_applib', []);
     var elc = $el.data('allex_element');
     if (!elc) throw new Error('Missing allex element ...');
     elc.set('$scopectrl', this);
+  };
+
+  BasicAngularElementController.prototype.raiseEvent = function (name, val) {
+    this.raise(name, val);
   };
 
   function AngularDataAwareController ($scope) {
@@ -66,6 +72,11 @@ angular.module('allex_applib', []);
     BasicAngularElement.prototype.set_$scopectrl = function (val) {
       this.$scopectrl = val;
       this._onScope(val);
+      this._setRaise();
+    };
+
+    BasicAngularElement.prototype._setRaise = function () {
+      this.$scopectrl.set('raise', this.$element.trigger.bind(this.$element));
     };
 
     BasicAngularElement.prototype.getMeAsElement = function () {
@@ -431,7 +442,6 @@ angular.module('allex_applib', []);
 
     _ctrl.set('_cbmap', _cbmap);
     _ctrl.set('gridOptions', this.config.grid);
-    _ctrl.set('raise', this.$element.trigger.bind(this.$element));
   };
 
   AngularDataTable.prototype.set_data = function (data) {
@@ -478,7 +488,6 @@ angular.module('allex_applib', []);
     CBMapable.call(this);
     this.data = [];
     this.gridOptions = null;
-    this.raise = null;
     this.api = null;
 
     this._parse = $parse;
@@ -499,7 +508,6 @@ angular.module('allex_applib', []);
 
     this.gridOptions = null;
     this.data = null;
-    this.raise = null;
     this.api = null;
     CBMapable.prototype.__cleanUp.call(this);
     AngularDataAwareController.prototype.__cleanUp.call(this);
@@ -545,10 +553,6 @@ angular.module('allex_applib', []);
   };
 
   function doReturn (what) { return what; }
-
-  AllexAngularDataTableController.prototype.raiseEvent = function (name, val){
-    this.raise(name, val);
-  };
 
   AllexAngularDataTableController.prototype.set_row_count = function (val) {
     if (!this._getActualData) return false; ///TODO ...

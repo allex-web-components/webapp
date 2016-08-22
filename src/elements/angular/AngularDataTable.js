@@ -63,7 +63,6 @@
 
     _ctrl.set('_cbmap', _cbmap);
     _ctrl.set('gridOptions', this.config.grid);
-    _ctrl.set('raise', this.$element.trigger.bind(this.$element));
   };
 
   AngularDataTable.prototype.set_data = function (data) {
@@ -110,7 +109,6 @@
     CBMapable.call(this);
     this.data = [];
     this.gridOptions = null;
-    this.raise = null;
     this.api = null;
 
     this._parse = $parse;
@@ -131,7 +129,6 @@
 
     this.gridOptions = null;
     this.data = null;
-    this.raise = null;
     this.api = null;
     CBMapable.prototype.__cleanUp.call(this);
     AngularDataAwareController.prototype.__cleanUp.call(this);
@@ -177,10 +174,6 @@
   };
 
   function doReturn (what) { return what; }
-
-  AllexAngularDataTableController.prototype.raiseEvent = function (name, val){
-    this.raise(name, val);
-  };
 
   AllexAngularDataTableController.prototype.set_row_count = function (val) {
     if (!this._getActualData) return false; ///TODO ...

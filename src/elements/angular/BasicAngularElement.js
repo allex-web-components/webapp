@@ -19,6 +19,11 @@
     BasicAngularElement.prototype.set_$scopectrl = function (val) {
       this.$scopectrl = val;
       this._onScope(val);
+      this._setRaise();
+    };
+
+    BasicAngularElement.prototype._setRaise = function () {
+      this.$scopectrl.set('raise', this.$element.trigger.bind(this.$element));
     };
 
     BasicAngularElement.prototype.getMeAsElement = function () {
