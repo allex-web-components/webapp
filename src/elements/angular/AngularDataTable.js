@@ -92,12 +92,20 @@
 
 
   AngularDataTable.prototype.set_row_count = function (rc) {
-    ///TODO: proveri samo da li ce da okine event ...
     return this.$scopectrl.set('row_count', rc);
   };
 
   AngularDataTable.prototype.get_row_count = function () {
     return this.$scopectrl.get('row_count');
+  };
+
+  AngularDataTable.prototype.getColumnDefs = function () {
+    return this.getConfigVal('grid.columnDefs');
+  };
+
+  AngularDataTable.prototype.$apply = function () {
+    BasicAngularElement.prototype.$apply.call(this);
+    this.$scopectrl.api.core.refresh();
   };
 
   module.elements.AngularDataTable = AngularDataTable;

@@ -35,6 +35,11 @@
       this.$element.data('allex_element', this);
     };
 
+    BasicAngularElement.prototype.$apply = function () {
+      if (!this.$scopectrl) return;
+      this.$scopectrl.$apply();
+    };
+
     BasicAngularElement.prototype._onScope = lib.dummyFunc;
     module.elements.BasicAngularElement = BasicAngularElement;
 

@@ -88,6 +88,11 @@ angular.module('allex_applib', []);
       this.$element.data('allex_element', this);
     };
 
+    BasicAngularElement.prototype.$apply = function () {
+      if (!this.$scopectrl) return;
+      this.$scopectrl.$apply();
+    };
+
     BasicAngularElement.prototype._onScope = lib.dummyFunc;
     module.elements.BasicAngularElement = BasicAngularElement;
 
@@ -179,12 +184,16 @@ angular.module('allex_applib', []);
     this._valid_l = null;
     this.validfields = {}; 
     this._validfields_l = {};
-
     this._default_values = {};
+    this.change = new lib.HookCollection();
+    this.initial = options ? options.initial : null;
   }
 
   lib.inherit (AngularFormLogic, BasicAngularElement);
   AngularFormLogic.prototype.__cleanUp = function () {
+    this.initial = null;
+    this.change.destroy();
+    this.change = null;
     this._default_values = null;
     lib.traverseShallow(this._validfields_l, this._unlisten.bind(this));
     this.validfields = null;
@@ -224,7 +233,10 @@ angular.module('allex_applib', []);
     var $el = jQuery(el),
       name = $el.attr('name');
     ///tanko ti ovo, prijatelju ... form format dozvoljava i hash-ove i nizove ... ovim to nisi pokrio ....
-    $el.attr('data-allex-angular-validate' , '_ctrl.validation.'+name);
+    $el.attr({
+      'data-allex-angular-validate' : '_ctrl.validation.'+name,
+      'data-ng-change' : '_ctrl.onChange(\''+name+'\', _ctrl.data.'+name+')'
+    });
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
       $el.attr('data-ng-model', '_ctrl.data.'+name);
@@ -285,7 +297,21 @@ angular.module('allex_applib', []);
   AngularFormLogic.prototype._onScope = function (ctrl) {
     this._valid_l = ctrl.attachListener('valid', this.set.bind(this, 'valid'));
     ctrl.set('validation', this.getConfigVal('validation'));
+    ctrl.set('_onChange', this._onChanged.bind(this));
     lib.traverseShallow (this._validfields_l, this._watchForValid.bind(this, ctrl.scope, this.$form.attr('name')));
+    if (this.initial) lib.runNext(this._setInitial.bind(this));
+  };
+
+  AngularFormLogic.prototype._onChanged = function (data, field, name) {
+    this.changed.fire('data', data);
+    this.change.fire(field, name);
+  };
+
+  AngularFormLogic.prototype._setInitial = function () {
+    this.set('data', this.initial);
+    for (var i in this.initial) {
+      this.change.fire(i, this.initial[i]);
+    }
   };
 
   AngularFormLogic.prototype._watchForValid = function (scope, formname, val, key) {
@@ -317,6 +343,7 @@ angular.module('allex_applib', []);
     this.valid = false;
     this._watcher = null;
     this.validation = null;
+    this._onChange = null;
   }
   lib.inherit(AllexAngularFormLogicController, BasicAngularElementController);
   AllexAngularFormLogicController.prototype.__cleanUp = function () {
@@ -325,7 +352,12 @@ angular.module('allex_applib', []);
     this._watcher = null;
     this.data = null;
     this.valid = null;
+    this._onChange = null;
     BasicAngularElementController.prototype.__cleanUp.call(this);
+  };
+
+  AllexAngularFormLogicController.prototype.onChange = function (name, val){
+    if (lib.isFunction(this._onChange)) this._onChange(this.data, name, val);
   };
 
   AllexAngularFormLogicController.prototype.elementReady = function ($el) {
@@ -477,6 +509,15 @@ angular.module('allex_applib', []);
 
   AngularDataTable.prototype.get_row_count = function () {
     return this.$scopectrl.get('row_count');
+  };
+
+  AngularDataTable.prototype.getColumnDefs = function () {
+    return this.getConfigVal('grid.columnDefs');
+  };
+
+  AngularDataTable.prototype.$apply = function () {
+    BasicAngularElement.prototype.$apply.call(this);
+    this.$scopectrl.api.core.refresh();
   };
 
   module.elements.AngularDataTable = AngularDataTable;
