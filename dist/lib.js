@@ -175,6 +175,9 @@
     this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
     this.set_actual(this.get('actual'));
+    if (lib.isFunction (this.getConfigVal ('onInitialized'))){
+      this.getConfigVal('onInitialized')(this);
+    }
   };
 
   WebElement.prototype.set_actual = function (val) {

@@ -28,10 +28,17 @@
     if (item.enableCellEdit) return true;
   }
 
+  AngularDataTable.prototype._replaceCellTemplate = function (item, index, arr) {
+    if (!item.cellTemplate || item.cellTemplate.charAt(0) !== '#') return;
+    item.cellTemplate = jQuery('#references > '+item.cellTemplate).html();
+  };
+
   AngularDataTable.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
 
-    var editable = lib.traverseConditionally (this.getConfigVal('grid.columnDefs'), checkIfEditable);
+    var editable = lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
+    this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
+
     var $container = $('<div class="table_container"></div>');
     $container.attr('ui-grid', '_ctrl.gridOptions');
     $container.attr('ui-grid-auto-resize', '');

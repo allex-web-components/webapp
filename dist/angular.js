@@ -173,7 +173,8 @@ angular.module('allex_applib', []);
   var lib = allex.lib,
     BasicAngularElementController = module.elements.BasicAngularElementController,
     BasicAngularElement = module.elements.BasicAngularElement,
-    q = lib.q;
+    q = lib.q,
+    BRACKET_END = /\[\]$/;
 
 
   function AngularFormLogic(id, options) {
@@ -231,18 +232,18 @@ angular.module('allex_applib', []);
 
   AngularFormLogic.prototype._prepareForAngular = function (el) {
     var $el = jQuery(el),
-      name = $el.attr('name');
-    ///tanko ti ovo, prijatelju ... form format dozvoljava i hash-ove i nizove ... ovim to nisi pokrio ....
+      name = $el.attr('name'),
+      model_name = this.getModelName(name);
     $el.attr({
-      'data-allex-angular-validate' : '_ctrl.validation.'+name,
-      'data-ng-change' : '_ctrl.onChange(\''+name+'\', _ctrl.data.'+name+')'
+      'data-allex-angular-validate' : '_ctrl.validation.'+model_name,
+      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')'
     });
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
-      $el.attr('data-ng-model', '_ctrl.data.'+name);
+      $el.attr('data-ng-model', '_ctrl.data.'+model_name);
     }
 
-    this._validfields_l[name] = null;
+    this._validfields_l[model_name] = null;
   };
 
   AngularFormLogic.prototype.appendHiddenFields = function (fields) {
@@ -294,11 +295,20 @@ angular.module('allex_applib', []);
     return this.$scopectrl.get('data');
   };
 
+  AngularFormLogic.prototype.getModelName = function (name) {
+    var model_name = name;
+    if(name.match (BRACKET_END)){
+      model_name = name.replace(BRACKET_END, '');
+    }
+    return model_name;
+  };
+
   AngularFormLogic.prototype._onScope = function (ctrl) {
     this._valid_l = ctrl.attachListener('valid', this.set.bind(this, 'valid'));
     ctrl.set('validation', this.getConfigVal('validation'));
     ctrl.set('_onChange', this._onChanged.bind(this));
     lib.traverseShallow (this._validfields_l, this._watchForValid.bind(this, ctrl.scope, this.$form.attr('name')));
+    ctrl.set('config', this.getConfigVal('form'));
     if (this.initial) lib.runNext(this._setInitial.bind(this));
   };
 
@@ -319,6 +329,10 @@ angular.module('allex_applib', []);
   };
   AngularFormLogic.prototype._updateError = function (scope, formname, key) {
     var s = lib.extend({}, this.validfields);
+    if (!scope[formname][key]){
+      console.warn ('no '+key+' in validator');
+      return;
+    }
     s[key] = !Object.keys(scope[formname][key].$error).length;
     this.set('validfields', s);
   };
@@ -344,6 +358,7 @@ angular.module('allex_applib', []);
     this._watcher = null;
     this.validation = null;
     this._onChange = null;
+    this.config = null;
   }
   lib.inherit(AllexAngularFormLogicController, BasicAngularElementController);
   AllexAngularFormLogicController.prototype.__cleanUp = function () {
@@ -353,6 +368,7 @@ angular.module('allex_applib', []);
     this.data = null;
     this.valid = null;
     this._onChange = null;
+    this.config = null;
     BasicAngularElementController.prototype.__cleanUp.call(this);
   };
 
@@ -439,10 +455,17 @@ angular.module('allex_applib', []);
     if (item.enableCellEdit) return true;
   }
 
+  AngularDataTable.prototype._replaceCellTemplate = function (item, index, arr) {
+    if (!item.cellTemplate || item.cellTemplate.charAt(0) !== '#') return;
+    item.cellTemplate = jQuery('#references > '+item.cellTemplate).html();
+  };
+
   AngularDataTable.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
 
-    var editable = lib.traverseConditionally (this.getConfigVal('grid.columnDefs'), checkIfEditable);
+    var editable = lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
+    this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
+
     var $container = $('<div class="table_container"></div>');
     $container.attr('ui-grid', '_ctrl.gridOptions');
     $container.attr('ui-grid-auto-resize', '');
@@ -503,7 +526,6 @@ angular.module('allex_applib', []);
 
 
   AngularDataTable.prototype.set_row_count = function (rc) {
-    ///TODO: proveri samo da li ce da okine event ...
     return this.$scopectrl.set('row_count', rc);
   };
 

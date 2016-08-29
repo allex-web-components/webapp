@@ -6,7 +6,8 @@
   var lib = allex.lib,
     BasicAngularElementController = module.elements.BasicAngularElementController,
     BasicAngularElement = module.elements.BasicAngularElement,
-    q = lib.q;
+    q = lib.q,
+    BRACKET_END = /\[\]$/;
 
 
   function AngularFormLogic(id, options) {
@@ -64,18 +65,18 @@
 
   AngularFormLogic.prototype._prepareForAngular = function (el) {
     var $el = jQuery(el),
-      name = $el.attr('name');
-    ///tanko ti ovo, prijatelju ... form format dozvoljava i hash-ove i nizove ... ovim to nisi pokrio ....
+      name = $el.attr('name'),
+      model_name = this.getModelName(name);
     $el.attr({
-      'data-allex-angular-validate' : '_ctrl.validation.'+name,
-      'data-ng-change' : '_ctrl.onChange(\''+name+'\', _ctrl.data.'+name+')'
+      'data-allex-angular-validate' : '_ctrl.validation.'+model_name,
+      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')'
     });
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
-      $el.attr('data-ng-model', '_ctrl.data.'+name);
+      $el.attr('data-ng-model', '_ctrl.data.'+model_name);
     }
 
-    this._validfields_l[name] = null;
+    this._validfields_l[model_name] = null;
   };
 
   AngularFormLogic.prototype.appendHiddenFields = function (fields) {
@@ -127,11 +128,20 @@
     return this.$scopectrl.get('data');
   };
 
+  AngularFormLogic.prototype.getModelName = function (name) {
+    var model_name = name;
+    if(name.match (BRACKET_END)){
+      model_name = name.replace(BRACKET_END, '');
+    }
+    return model_name;
+  };
+
   AngularFormLogic.prototype._onScope = function (ctrl) {
     this._valid_l = ctrl.attachListener('valid', this.set.bind(this, 'valid'));
     ctrl.set('validation', this.getConfigVal('validation'));
     ctrl.set('_onChange', this._onChanged.bind(this));
     lib.traverseShallow (this._validfields_l, this._watchForValid.bind(this, ctrl.scope, this.$form.attr('name')));
+    ctrl.set('config', this.getConfigVal('form'));
     if (this.initial) lib.runNext(this._setInitial.bind(this));
   };
 
@@ -152,6 +162,10 @@
   };
   AngularFormLogic.prototype._updateError = function (scope, formname, key) {
     var s = lib.extend({}, this.validfields);
+    if (!scope[formname][key]){
+      console.warn ('no '+key+' in validator');
+      return;
+    }
     s[key] = !Object.keys(scope[formname][key].$error).length;
     this.set('validfields', s);
   };
@@ -177,6 +191,7 @@
     this._watcher = null;
     this.validation = null;
     this._onChange = null;
+    this.config = null;
   }
   lib.inherit(AllexAngularFormLogicController, BasicAngularElementController);
   AllexAngularFormLogicController.prototype.__cleanUp = function () {
@@ -186,6 +201,7 @@
     this.data = null;
     this.valid = null;
     this._onChange = null;
+    this.config = null;
     BasicAngularElementController.prototype.__cleanUp.call(this);
   };
 
