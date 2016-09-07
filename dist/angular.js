@@ -188,10 +188,12 @@ angular.module('allex_applib', []);
     this._default_values = {};
     this.change = new lib.HookCollection();
     this.initial = options ? options.initial : null;
+    this.array_keys = options ? options.array_keys : null;
   }
 
   lib.inherit (AngularFormLogic, BasicAngularElement);
   AngularFormLogic.prototype.__cleanUp = function () {
+    this.array_keys = null;
     this.initial = null;
     this.change.destroy();
     this.change = null;
@@ -277,8 +279,12 @@ angular.module('allex_applib', []);
     return this.$form.find ('[name="'+name+'"]');
   };
 
+  AngularFormLogic.prototype.toArray = function (keys) {
+    return lib.hashToArray(keys, this.get('data'));
+  };
+
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.$scopectrl.data);
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.$scopectrl.data);
   };
 
   function setDefaultVals (data, value, key) {
@@ -317,11 +323,16 @@ angular.module('allex_applib', []);
     this.change.fire(field, name);
   };
 
-  AngularFormLogic.prototype._setInitial = function () {
-    this.set('data', this.initial);
+  AngularFormLogic.prototype._setInitial = function (ext) {
+
+    this.set('data', lib.extend ({}, this.initial, ext));
     for (var i in this.initial) {
       this.change.fire(i, this.initial[i]);
     }
+  };
+
+  AngularFormLogic.prototype.resetForm = function (ext) {
+    this._setInitial(ext);
   };
 
   AngularFormLogic.prototype._watchForValid = function (scope, formname, val, key) {
