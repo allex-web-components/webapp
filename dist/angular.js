@@ -137,6 +137,27 @@ angular.module('allex_applib', []);
     module.elements.AngularElement = AngularElement;
     applib.registerElementType('AngularElement', AngularElement);
 
+    function AngularFormElement(id, options) {
+      BasicAngularElement.call(this, id, options);
+    }
+    lib.inherit(AngularFormElement, BasicAngularElement);
+    AngularFormElement.prototype.set_data = function (val) {
+      var ret = DataElementMixIn.prototype.set_data.call(this, val),
+        parentscopectrl, myname;
+
+      if (DataElementMixIn.prototype.hasDataChanged.call(this, ret)){
+        parentscopectrl = this.__parent.$scopectrl;
+        myname = this.$element.attr('name');
+        if (parentscopectrl && myname) {
+          parentscopectrl.data[myname] = val;
+        }
+      }
+      return ret;
+    };
+    module.elements.AngularFormElement = AngularFormElement;
+    applib.registerElementType('AngularFormElement', AngularFormElement);
+
+
   
     //This is angular part of code ...
     function AllexAngularElementController($scope) {
@@ -404,7 +425,7 @@ angular.module('allex_applib', []);
 
     if (!validation[name]) return true;
     if (!this.validateJSON(validation[name].json_schema, modelValue)) return false;
-    return this.validateFunction (validation[name].custom);
+    return this.validateFunction (validation[name].custom, modelValue);
   };
 
 
@@ -416,7 +437,7 @@ angular.module('allex_applib', []);
 
   AllexAngularFormLogicController.prototype.validateFunction = function (f, value) {
     if (!lib.isFunction (f)) return true;
-    return f(value);
+    return f(value, this.data);
   };
 
 

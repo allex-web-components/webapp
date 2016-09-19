@@ -237,7 +237,7 @@
 
     if (!validation[name]) return true;
     if (!this.validateJSON(validation[name].json_schema, modelValue)) return false;
-    return this.validateFunction (validation[name].custom);
+    return this.validateFunction (validation[name].custom, modelValue);
   };
 
 
@@ -249,7 +249,7 @@
 
   AllexAngularFormLogicController.prototype.validateFunction = function (f, value) {
     if (!lib.isFunction (f)) return true;
-    return f(value);
+    return f(value, this.data);
   };
 
 

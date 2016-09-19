@@ -87,11 +87,20 @@
 
   WebElement.prototype.getElement = function (path) {
     //e, aj vidi u cemu je ovde fora ... jel .$element ili je $element ili sta je koji moj ... i gledaj samo pocetak sa replace ....
+    var ret, elempath;
     if (path.indexOf('$element.') === 0){
-      return this.$element.find('#'+path.replace('$element.', ''));
+      elempath = '#'+path.replace('$element.', '');
+      ret = this.$element.find(elempath);
     }
     if (path.indexOf('.$element.') === 0) {
-      return this.$element.find('#'+path.replace('.$element.', ''));
+      elempath = '#'+path.replace('.$element.', '');
+      ret = this.$element.find(elempath);
+    }
+    if (ret) {
+      if (ret.length===0) {
+        throw new lib.Error('JQUERY_FIND_FAILED', 'jQuery could not find '+elempath);
+      }
+      return ret;
     }
 
 

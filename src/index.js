@@ -120,6 +120,7 @@
   };
 
   JQueryPropertyTargetHandler.prototype.handle = function (val) {
+    console.log(this.carrier, this.method, this.prop, val);
     this.carrier[lib.isUndef(val) ? this.removeMethod : this.method](this.prop, val);
   };
   
@@ -138,6 +139,48 @@
     }
   };
   linkinglib.propertyTargetHandlingRegistry.register(JQueryPropertyTargetHandler.recognizer);
+
+  function JQueryDefinedPropertyTargetHandler (propertycarrier) {
+    PropertyTargetHandler.call(this, propertycarrier, this.propertyName);
+  }
+  lib.inherit(JQueryDefinedPropertyTargetHandler, PropertyTargetHandler);
+  JQueryDefinedPropertyTargetHandler.prototype.handle = function (val) {
+    this.carrier[this.propertyName](val);
+  };
+
+  function JQueryValTargetHandler (propertycarrier) {
+    JQueryDefinedPropertyTargetHandler.call(this, propertycarrier);
+  }
+  lib.inherit(JQueryValTargetHandler, JQueryDefinedPropertyTargetHandler);
+  JQueryValTargetHandler.prototype.propertyName = 'val';
+  JQueryValTargetHandler.recognizer = function (carrierwithname) {
+    if (carrierwithname.name !== 'val') return;
+    return JQueryValTargetHandler;
+  };
+  linkinglib.propertyTargetHandlingRegistry.register(JQueryValTargetHandler.recognizer);
+
+  function JQueryTextTargetHandler (propertycarrier) {
+    JQueryDefinedPropertyTargetHandler.call(this, propertycarrier);
+  }
+  lib.inherit(JQueryTextTargetHandler, JQueryDefinedPropertyTargetHandler);
+  JQueryTextTargetHandler.prototype.propertyName = 'text';
+  JQueryTextTargetHandler.recognizer = function (carrierwithname) {
+    if (carrierwithname.name !== 'text') return;
+    return JQueryTextTargetHandler;
+  };
+  linkinglib.propertyTargetHandlingRegistry.register(JQueryTextTargetHandler.recognizer);
+
+  function JQueryHtmlTargetHandler (propertycarrier) {
+    JQueryDefinedPropertyTargetHandler.call(this, propertycarrier);
+  }
+  lib.inherit(JQueryHtmlTargetHandler, JQueryDefinedPropertyTargetHandler);
+  JQueryHtmlTargetHandler.prototype.propertyName = 'html';
+  JQueryHtmlTargetHandler.recognizer = function (carrierwithname) {
+    if (carrierwithname.name !== 'html') return;
+    return JQueryHtmlTargetHandler;
+  };
+  linkinglib.propertyTargetHandlingRegistry.register(JQueryHtmlTargetHandler.recognizer);
+
   allex.WEB_COMPONENTS.allex_web_webappcomponent = {
     resources : {},
     APP : null,
