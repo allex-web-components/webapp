@@ -1,7 +1,10 @@
 {
   "js": {
+    "initializator":[
+      "src/index.js"
+    ],
     "lib": [
-      "src/index.js",
+      "src/handlers.js",
       "src/elements/WebElement.js",
       "src/resources/AnimatedImageZipLibrary.js",
       "src/resources/WebFont.js",

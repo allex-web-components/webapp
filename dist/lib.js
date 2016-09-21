@@ -180,13 +180,6 @@
     return JQueryHtmlTargetHandler;
   };
   linkinglib.propertyTargetHandlingRegistry.register(JQueryHtmlTargetHandler.recognizer);
-
-  allex.WEB_COMPONENTS.allex_web_webappcomponent = {
-    resources : {},
-    APP : null,
-    elements: {},
-    mixins : {}
-  };
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib, ALLEX.WEB_COMPONENTS.allex_applinkinglib);
 //samo da te vidim
 (function (allex, module, applib, $) {
