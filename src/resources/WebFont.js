@@ -15,12 +15,13 @@
       families : {
         type : 'array',
         items: {type: 'string'}
-      }
+      },
+      ispermanent : {type : 'boolean'}
     }
   };
 
   function FontLoader (options) {
-    BasicResourceLoader.call(this, options);
+    BasicResourceLoader.call(this, lib.extend ({} , options, {ispermanent : true}));
     if (!window.WebFont) throw new Error('No WebFont component loaded, unable to load resource');
   }
   lib.inherit(FontLoader, BasicResourceLoader);
@@ -31,10 +32,10 @@
   FontLoader.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
   FontLoader.prototype.DEFAULT_CONFIG = function () { return null; };
 
-  FontLoader.prototype.load = function () {
+  FontLoader.prototype.doLoad = function () {
     var d = q.defer();
     $(document).ready(this._go.bind(this, d));
-    return d.promise;
+    return d;
   };
 
   FontLoader.prototype._go = function (defer) {

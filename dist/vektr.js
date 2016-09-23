@@ -21,7 +21,7 @@
       elements : {type: "array" },
     },
     additionalProperties : false,
-    required : ['debug', 'autoresize','svg']
+    required : ['debug', 'autoresize']
   };
 
 
@@ -71,10 +71,12 @@
   };
 
   VektrCanvas.prototype.load = function () {
-    return WebElement.prototype.load.call(this).then(this._onLoaded.bind(this));
+    if (!this.getConfigVal('svg')) throw new Error('No svg given, can not move on ...');
+    return WebElement.prototype.load.call(this);
   };
 
-  VektrCanvas.prototype._onLoaded = function () {
+  VektrCanvas.prototype.onLoaded = function () {
+    WebElement.prototype.onLoaded.call(this);
     this.scene = new vektr.compositing.Scene(this.get('id'), this.config);
     var svg = this.getConfigVal ('svg'),
       pctor = this.getConfigVal('ctor'),
@@ -94,6 +96,7 @@
     this.scene = null;
 
     this.$element.empty();
+    WebElement.prototype.unload.call(this);
   };
 
   VektrCanvas.prototype._runRenderers = function () {

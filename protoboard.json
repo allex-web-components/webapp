@@ -8,7 +8,6 @@
       "src/elements/WebElement.js",
       "src/resources/AnimatedImageZipLibrary.js",
       "src/resources/WebFont.js",
-      "src/resources/Throbber.js",
       "src/mixins/DataElementMixIn.js",
       "src/elements/DataAwareElement.js"
     ],

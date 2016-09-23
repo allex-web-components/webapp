@@ -6,7 +6,7 @@
   q = lib.q;
 
   function AngularBootstrapper (options, app) {
-    BasicResourceLoader.call(this, options);
+    BasicResourceLoader.call(this, lib.extend ({}, options, {ispermanent : true}));
     this._dependentElements = new lib.Map ();
     app.ready(this._onReady.bind(this));
   }
@@ -18,8 +18,10 @@
     BasicResourceLoader.prototype.__cleanUp.call(this);
   };
 
-  AngularBootstrapper.prototype.load = function (){
-    return q.resolve('ok');
+  AngularBootstrapper.prototype.doLoad = function (){
+    var defer = q.defer();
+    defer.resolve('ok');
+    return defer;
   };
 
   AngularBootstrapper.prototype._onReady = function (defer) {

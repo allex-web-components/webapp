@@ -9,15 +9,10 @@
   function WebElement (id, options)  {
     BasicElement.call(this, id, options);
     this.$element = null;
-    this.loaded = null;
-    this.in_progress = null;
   }
   lib.inherit (WebElement, BasicElement);
 
   WebElement.prototype.__cleanUp = function () {
-    if (this.in_progress) this.in_progress.reject (new Error('Going down...'));
-    this.in_progress = null;
-    this.loaded = null;
     this.$element = null;
     BasicElement.prototype.__cleanUp.call(this);
   };
@@ -33,22 +28,24 @@
   };
 
   WebElement.prototype.set_actual = function (val) {
-    var ret = BasicElement.prototype.set_actual.call(this, val);
-    if (!this.$element) return ret;
-    if (val) {
-      if (this.loaded) {
-        this.show();
-      }else{
-        var p = this.load();
-        p.done(this.set.bind(this, 'loaded', true));
-        p.done(this.show.bind(this));
-        this.set('in_progress', p);
-      }
-    }else{
-      this.hide();
-      this.set('loaded', false);
-    }
-    return ret;
+    if (!this.$element) return false;
+    return BasicElement.prototype.set_actual.call(this, val);
+  };
+
+  WebElement.prototype.onUnloaded = function () {
+    this.hide();
+  };
+
+  WebElement.prototype.onLoaded = function () {
+    this.show();
+  };
+
+  WebElement.prototype.onLoadFailed = function () {
+    //TODO
+  };
+
+  WebElement.prototype.onLoadProgress = function () {
+    //TODO
   };
 
   WebElement.prototype.set_loaded = function (val) {
@@ -62,26 +59,13 @@
     return true;
   };
 
-  WebElement.prototype.load = function () {
-    var resources = this.getConfigVal('resources');
-    if (!resources || !resources.length) return q.resolve('ok');
-    var promise = q.all(resources.map (resourceFactory));
-
-    var throbber = applib.getResource('MainThrobber');
-    if (throbber){
-      throbber.addPromise(promise);
-    }
-    return promise;
-  };
-
-
-  WebElement.prototype.unload = lib.dummyFunc;
-
   WebElement.prototype.show = function () {
+    //console.log('will show ', this.get('id'));
     this.$element.show();
   };
 
   WebElement.prototype.hide = function () {
+    //console.log('will hide',this.get('id'));
     this.$element.hide();
   };
 

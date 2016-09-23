@@ -38,7 +38,8 @@
         minItems : 1
       },
       baseURL : {type : 'string'},
-      volume : {type : 'number'}
+      volume : {type : 'number'},
+      ispermanent : {type : 'boolean'}
     },
     additionalProperties  : false
   };
@@ -56,16 +57,18 @@
   };
 
 
-  HowlerResource.prototype.load = function () {
+  HowlerResource.prototype.doLoad = function () {
     var defaults = {
       baseURL : this.getConfigVal('baseURL'),
       volume : this.getConfigVal('volume')
     };
 
-
     var p = lib.q.all(this.getConfigVal ('sounds').map(this._loadASound.bind(this, defaults)));
     p.done(console.log.bind(console, 'done'), console.log.bind(console, 'failed'));
-    return p;
+
+    var defer = lib.q.defer();
+    lib.qlib.promise2defer(p, defer);
+    return defer;
   };
 
   function toURL (baseURL, url) {

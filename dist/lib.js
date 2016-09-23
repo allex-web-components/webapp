@@ -193,15 +193,10 @@
   function WebElement (id, options)  {
     BasicElement.call(this, id, options);
     this.$element = null;
-    this.loaded = null;
-    this.in_progress = null;
   }
   lib.inherit (WebElement, BasicElement);
 
   WebElement.prototype.__cleanUp = function () {
-    if (this.in_progress) this.in_progress.reject (new Error('Going down...'));
-    this.in_progress = null;
-    this.loaded = null;
     this.$element = null;
     BasicElement.prototype.__cleanUp.call(this);
   };
@@ -217,22 +212,24 @@
   };
 
   WebElement.prototype.set_actual = function (val) {
-    var ret = BasicElement.prototype.set_actual.call(this, val);
-    if (!this.$element) return ret;
-    if (val) {
-      if (this.loaded) {
-        this.show();
-      }else{
-        var p = this.load();
-        p.done(this.set.bind(this, 'loaded', true));
-        p.done(this.show.bind(this));
-        this.set('in_progress', p);
-      }
-    }else{
-      this.hide();
-      this.set('loaded', false);
-    }
-    return ret;
+    if (!this.$element) return false;
+    return BasicElement.prototype.set_actual.call(this, val);
+  };
+
+  WebElement.prototype.onUnloaded = function () {
+    this.hide();
+  };
+
+  WebElement.prototype.onLoaded = function () {
+    this.show();
+  };
+
+  WebElement.prototype.onLoadFailed = function () {
+    //TODO
+  };
+
+  WebElement.prototype.onLoadProgress = function () {
+    //TODO
   };
 
   WebElement.prototype.set_loaded = function (val) {
@@ -246,26 +243,13 @@
     return true;
   };
 
-  WebElement.prototype.load = function () {
-    var resources = this.getConfigVal('resources');
-    if (!resources || !resources.length) return q.resolve('ok');
-    var promise = q.all(resources.map (resourceFactory));
-
-    var throbber = applib.getResource('MainThrobber');
-    if (throbber){
-      throbber.addPromise(promise);
-    }
-    return promise;
-  };
-
-
-  WebElement.prototype.unload = lib.dummyFunc;
-
   WebElement.prototype.show = function () {
+    //console.log('will show ', this.get('id'));
     this.$element.show();
   };
 
   WebElement.prototype.hide = function () {
+    //console.log('will hide',this.get('id'));
     this.$element.hide();
   };
 
@@ -341,14 +325,16 @@
   'use strict';
 
   var lib = allex.lib,
+    qlib = lib.qlib,
+    q = lib.q,
     BasicResourceLoader = applib.BasicResourceLoader;
-
 
   var CONFIG_SCHEMA = {
     type : 'object',
     properties : {
       url : { type : 'string' },
-      extractor : {type : 'string'}
+      extractor : {type : 'string'},
+      ispermanent : {type : 'boolean'}
     },
     required : ['url']
   };
@@ -363,15 +349,16 @@
     BasicResourceLoader.prototype.__cleanUp.call(this);
   };
 
-  AnimatedImageZipLibrary.prototype.load = function () {
+  AnimatedImageZipLibrary.prototype.doLoad = function () {
+    var defer = q.defer();
     var extractor = this.getConfigVal('extractor');
     var ZipLoader = ALLEX.WEB_COMPONENTS['allex_vektr.imageanimations'].ZipLoader;
     this.zl = new ZipLoader(extractor ? new RegExp(extractor) : null);
     var p = this.zl.load(this.getConfigVal('url'));
 
     p.done (console.log.bind(console, 'Zip '+this.getConfigVal('url')+' has been unpacked successfully'), console.log.bind(console, 'Failed to unpack '+this.getConfigVal('url')));
-
-    return p;
+    qlib.promise2defer(p, defer);
+    return defer;
   };
 
   AnimatedImageZipLibrary.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
@@ -380,6 +367,8 @@
   AnimatedImageZipLibrary.prototype.get = function (id) {
     return this.zl ? this.zl.result.get(id) : null;
   };
+
+  AnimatedImageZipLibrary.prototype.loadOnDemand = function () { return true; };
 
   module.resources.AnimatedImageZipLibrary = AnimatedImageZipLibrary;
   applib.registerResourceType ('AnimatedImageZipLibrary', AnimatedImageZipLibrary);
@@ -402,12 +391,13 @@
       families : {
         type : 'array',
         items: {type: 'string'}
-      }
+      },
+      ispermanent : {type : 'boolean'}
     }
   };
 
   function FontLoader (options) {
-    BasicResourceLoader.call(this, options);
+    BasicResourceLoader.call(this, lib.extend ({} , options, {ispermanent : true}));
     if (!window.WebFont) throw new Error('No WebFont component loaded, unable to load resource');
   }
   lib.inherit(FontLoader, BasicResourceLoader);
@@ -418,10 +408,10 @@
   FontLoader.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
   FontLoader.prototype.DEFAULT_CONFIG = function () { return null; };
 
-  FontLoader.prototype.load = function () {
+  FontLoader.prototype.doLoad = function () {
     var d = q.defer();
     $(document).ready(this._go.bind(this, d));
-    return d.promise;
+    return d;
   };
 
   FontLoader.prototype._go = function (defer) {
@@ -437,88 +427,6 @@
   module.resources.FontLoader = FontLoader;
   applib.registerResourceType('FontLoader', FontLoader);
 
-})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
-(function (allex, module, applib, $) {
-  'use strict';
-
-  var lib = allex.lib,
-    BasicResourceLoader = applib.BasicResourceLoader,
-    q = lib.q;
-
-
-    var CONFIG_SCHEMA = {
-      type: 'object',
-      properties: {
-        'selector': {type:'string'},
-        'searchForCurrent' : {type: 'boolean'}
-      },
-      required : ['selector']
-    };
-
-    function Throbber (options){
-      BasicResourceLoader.call(this,options);
-      this.$element = null;
-      this.pending = [];
-    }
-    lib.inherit (Throbber, BasicResourceLoader);
-    Throbber.prototype.__cleanUp = function () {
-      this.pending = null;
-      this.$element = null;
-      BasicResourceLoader.prototype.__cleanUp.call(this);
-    };
-
-
-    Throbber.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
-    Throbber.prototype.DEFAULT_CONFIG = function () { return null; };
-
-    Throbber.prototype.load = function () {
-      var d = q.defer();
-      $(document).ready(this._go.bind(this, d));
-      return d.promise;
-    };
-
-    Throbber.prototype._go = function (defer){
-      this.$element = $(this.getConfigVal('selector'));
-      if (!this.$element || !this.$element.length) return defer.reject(new Error('Unable to find throbber'));
-      if (!this.getConfigVal('searchForCurrent')) {
-        this.$element.hide();
-        defer.resolve('ok');
-        return defer.promise;
-      }
-      applib.traverseResources(this._inspectResource.bind(this));
-      this.recheckPendings();
-      return defer.resolve('ok');
-    };
-
-    Throbber.prototype._inspectResource = function (res, id){
-      if (this === res.instance) return;
-      this.addPromise (res.promise);
-    };
-
-    Throbber.prototype.addPromise = function (promise) {
-      this.pending.push (promise);
-      promise.done(this._onPromiseDone.bind(this, promise), this._onPromiseDone.bind(this, promise));
-      this.recheckPendings();
-    };
-
-    Throbber.prototype._onPromiseDone = function (promise) {
-      var index = this.pending.indexOf(promise);
-      if (index < 0) return; //nothing to be done
-      this.pending.splice(index, 1);
-      this.recheckPendings();
-    };
-
-    Throbber.prototype.recheckPendings = function () {
-      if (this.pending.length) {
-        this.$element.show();
-      }else{
-        this.$element.hide();
-      }
-    };
-
-    module.resources.Throbber = Throbber;
-    applib.registerResourceType('Throbber', Throbber);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 //samo da te vidim
 (function (allex, module, applib) {
