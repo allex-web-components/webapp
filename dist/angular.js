@@ -51,7 +51,6 @@ angular.module ('allex_applib', []);
     traverseElements (desc.elements, used_angular_elements);
     used_angular_elements.traverse (appendRequirements.bind(null, angular_resource.options.angular_dependencies));
     angular_resource.options.angular_dependencies = lib.arryOperations.unique (angular_resource.options.angular_dependencies);
-    console.log('SAMO DA VIDIM ...', angular_resource.options.angular_dependencies);
   };
 
   function appendRequirements (dependencies, req, name) {

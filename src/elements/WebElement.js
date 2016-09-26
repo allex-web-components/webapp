@@ -29,6 +29,9 @@
 
   WebElement.prototype.set_actual = function (val) {
     if (!this.$element) return false;
+    if (this.get('id') === 'backoffice_layout'){
+      console.log('will set actual to', val);
+    }
     return BasicElement.prototype.set_actual.call(this, val);
   };
 
@@ -37,7 +40,7 @@
   };
 
   WebElement.prototype.onLoaded = function () {
-    this.show();
+    if (this.get('actual')) this.show();
   };
 
   WebElement.prototype.onLoadFailed = function () {
