@@ -117,6 +117,7 @@
 
   module.elements.AngularDataTable = AngularDataTable;
   applib.registerElementType('AngularDataTable', AngularDataTable);
+  module.ANGULAR_REQUIREMENTS.add ('AngularDataTable', ['ui.grid','ui.grid.edit', 'ui.grid.autoResize']);
 
   //This is angular part of code ... //and what about this ... raise ....
   function AllexAngularDataTableController ($scope, $parse) {
