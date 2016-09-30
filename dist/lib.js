@@ -245,12 +245,24 @@
 
   WebElement.prototype.show = function () {
     //console.log('will show ', this.get('id'));
-    this.$element.show();
+    var visible_class = this.getConfigVal('visible_class');
+
+    if (visible_class) {
+      this.$element.addClass(visible_class);
+    }else{
+      this.$element.show();
+    }
   };
 
   WebElement.prototype.hide = function () {
     //console.log('will hide',this.get('id'));
-    this.$element.hide();
+     var visible_class = this.getConfigVal('visible_class');
+
+    if (visible_class) {
+      this.$element.removeClass(visible_class);
+    }else{
+      this.$element.hide();
+    }
   };
 
   WebElement.prototype.getElement = function (path) {
