@@ -245,24 +245,51 @@
 
   WebElement.prototype.show = function () {
     //console.log('will show ', this.get('id'));
-    var visible_class = this.getConfigVal('visible_class');
+    var visible_class = this.getConfigVal('visible_class'),
+      show_jq_function = this.getConfigVal('show_jq_function');
 
     if (visible_class) {
       this.$element.addClass(visible_class);
-    }else{
-      this.$element.show();
     }
+
+    if (show_jq_function) {
+      if (lib.isString(show_jq_function)){
+        this.$element[show_jq_function]();
+        return;
+      }
+
+      if (lib.isArray(show_jq_function)){
+        var name = show_jq_function[0];
+        this.$element[name].apply(this.$element, show_jq_function.slice(1));
+        return;
+      }
+    }
+    this.$element.show();
   };
 
   WebElement.prototype.hide = function () {
     //console.log('will hide',this.get('id'));
-     var visible_class = this.getConfigVal('visible_class');
+     var visible_class = this.getConfigVal('visible_class'),
+      hide_jq_function = this.getConfigVal('hide_jq_function');
 
     if (visible_class) {
       this.$element.removeClass(visible_class);
-    }else{
-      this.$element.hide();
     }
+
+    if (hide_jq_function) {
+      if (lib.isString(hide_jq_function)){
+        this.$element[hide_jq_function]();
+        return;
+      }
+
+      if (lib.isArray(hide_jq_function)){
+        var name = hide_jq_function[0];
+        this.$element[name].apply(this.$element, hide_jq_function.slice(1));
+        return;
+      }
+    }
+
+    this.$element.hide();
   };
 
   WebElement.prototype.getElement = function (path) {
