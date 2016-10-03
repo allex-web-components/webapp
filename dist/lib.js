@@ -120,7 +120,7 @@
   };
 
   JQueryPropertyTargetHandler.prototype.handle = function (val) {
-    console.log(this.carrier, this.method, this.prop, val);
+    //console.log(this.carrier, this.method, this.prop, val);
     this.carrier[lib.isUndef(val) ? this.removeMethod : this.method](this.prop, val);
   };
   
@@ -205,7 +205,7 @@
     BasicElement.prototype.initialize.call(this);
     this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
-    this.set_actual(this.get('actual'));
+    this.set_actual(!!this.get('actual'));
     if (lib.isFunction (this.getConfigVal ('onInitialized'))){
       this.getConfigVal('onInitialized')(this);
     }
@@ -213,7 +213,7 @@
 
   WebElement.prototype.set_actual = function (val) {
     if (!this.$element) return false;
-    if (this.get('id') === 'backoffice_layout'){
+    if (this.get('id') === 'SlotResources'){
       console.log('will set actual to', val);
     }
     return BasicElement.prototype.set_actual.call(this, val);
@@ -224,7 +224,9 @@
   };
 
   WebElement.prototype.onLoaded = function () {
-    if (this.get('actual')) this.show();
+    if (this.get('actual')) {
+      this.show();
+    }
   };
 
   WebElement.prototype.onLoadFailed = function () {
@@ -252,7 +254,6 @@
   };
 
   WebElement.prototype.hide = function () {
-    //console.log('will hide',this.get('id'));
     this.$element.hide();
   };
 
@@ -431,6 +432,46 @@
   applib.registerResourceType('FontLoader', FontLoader);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
+//samo da te vidim
+(function (allex, module, applib) {
+  var lib = allex.lib,
+  BasicResourceLoader = applib.BasicResourceLoader,
+  q = lib.q,
+  CONFIG_SCHEMA = {
+    type : 'object',
+    properties : {
+      url : {type : 'string'}
+    },
+    required : ['url']
+  };
+
+  function URLGenerator (options) {
+    BasicResourceLoader.call(this, options);
+  }
+  lib.inherit (URLGenerator, BasicResourceLoader);
+  URLGenerator.prototype.__cleanUp = function () {
+    BasicResourceLoader.prototype.__cleanUp.call(this);
+  };
+
+  URLGenerator.prototype.doLoad = function () {
+    var ret = q.defer();
+    ret.resolve(true);
+    return ret;
+  };
+
+  URLGenerator.prototype.DEFAULT_CONFIG = function () {return null;};
+  URLGenerator.prototype.CONFIG_SCHEMA = function () {return CONFIG_SCHEMA;};
+  URLGenerator.prototype.getFullUrl = function (path, query) {
+    var url = this.getConfigVal ('url');
+    url = url.charAt(url.length) === '/' ? url+path : url+'/'+path;
+    ///TODO: fali query ...
+    return url;
+  };
+
+
+  applib.registerResourceType('URLGenerator', URLGenerator);
+
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);
 //samo da te vidim
 (function (allex, module, applib) {
   'use strict';

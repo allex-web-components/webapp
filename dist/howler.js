@@ -105,11 +105,13 @@
     return this.sounds.get(sound); 
   };
 
-  HowlerResource.prototype.start = function (sound, sprite) {
+  HowlerResource.prototype.start = function (sound, safe, sprite) {
     ///will resolve promise once ended ...
     var hs = this.getSound(sound);
 
-    if (!hs) return d.reject (new Error('No sound '+sound));
+    if (!hs) {
+      return safe ? d.resolve(true) : d.reject (new Error('No sound '+sound));
+    }
 
     var d = lib.q.defer(), r = d.resolve.bind(d, true);
     hs.on ('stop', r);

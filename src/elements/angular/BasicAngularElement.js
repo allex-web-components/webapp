@@ -24,6 +24,7 @@
 
     BasicAngularElement.prototype._setRaise = function () {
       this.$scopectrl.set('raise', this.$element.trigger.bind(this.$element));
+      this.$scopectrl.set('_getResource', this.getResource.bind(this));
     };
 
     BasicAngularElement.prototype.getMeAsElement = function () {

@@ -21,7 +21,7 @@
     BasicElement.prototype.initialize.call(this);
     this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
-    this.set_actual(this.get('actual'));
+    this.set_actual(!!this.get('actual'));
     if (lib.isFunction (this.getConfigVal ('onInitialized'))){
       this.getConfigVal('onInitialized')(this);
     }
@@ -29,7 +29,7 @@
 
   WebElement.prototype.set_actual = function (val) {
     if (!this.$element) return false;
-    if (this.get('id') === 'backoffice_layout'){
+    if (this.get('id') === 'SlotResources'){
       console.log('will set actual to', val);
     }
     return BasicElement.prototype.set_actual.call(this, val);
@@ -40,7 +40,9 @@
   };
 
   WebElement.prototype.onLoaded = function () {
-    if (this.get('actual')) this.show();
+    if (this.get('actual')) {
+      this.show();
+    }
   };
 
   WebElement.prototype.onLoadFailed = function () {
@@ -68,7 +70,6 @@
   };
 
   WebElement.prototype.hide = function () {
-    //console.log('will hide',this.get('id'));
     this.$element.hide();
   };
 

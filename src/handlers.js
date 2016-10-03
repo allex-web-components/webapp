@@ -120,7 +120,7 @@
   };
 
   JQueryPropertyTargetHandler.prototype.handle = function (val) {
-    console.log(this.carrier, this.method, this.prop, val);
+    //console.log(this.carrier, this.method, this.prop, val);
     this.carrier[lib.isUndef(val) ? this.removeMethod : this.method](this.prop, val);
   };
   

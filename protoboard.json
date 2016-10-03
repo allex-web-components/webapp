@@ -8,6 +8,7 @@
       "src/elements/WebElement.js",
       "src/resources/AnimatedImageZipLibrary.js",
       "src/resources/WebFont.js",
+      "src/resources/URLGenerator.js",
       "src/mixins/DataElementMixIn.js",
       "src/elements/DataAwareElement.js"
     ],

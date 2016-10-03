@@ -10,11 +10,17 @@ angular.module('allex_applib', []);
   function BasicAngularElementController ($scope) {
     BasicAngularController.call(this, $scope);
     this.raise = null;
+    this._getResource = null;
   }
   lib.inherit (BasicAngularElementController, BasicAngularController);
   BasicAngularElementController.prototype.__cleanUp = function () {
     this.raise = null;
+    this._getResource = null;
     BasicAngularController.prototype.__cleanUp.call(this);
+  };
+
+  BasicAngularElementController.prototype.getResource = function (name) {
+    return this._getResource ? this._getResource(name) : undefined;
   };
 
   BasicAngularElementController.prototype.elementReady = function ($el) {
