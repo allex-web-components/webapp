@@ -36,7 +36,7 @@
   AngularDataTable.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
 
-    var editable = lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
+    var editable = this.config.grid.enableCellEdit || lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
     this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
 
     var $container = $('<div class="table_container"></div>');
@@ -85,7 +85,7 @@
     }
 
     var f = this.getConfigVal('config.fAppendNewRow');
-    return f ? f(current_length, row) : row;
+    return f ? f(this, current_length, row) : row;
   };
 
   AngularDataTable.prototype.get_rows = function () {
@@ -113,6 +113,30 @@
   AngularDataTable.prototype.$apply = function () {
     BasicAngularElement.prototype.$apply.call(this);
     this.$scopectrl.api.core.refresh();
+  };
+
+
+  AngularDataTable.prototype.removeAllColumns = function () {
+    this.config.grid.columnDefs.splice(0, this.config.grid.columnDefs.length);
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.appendColumn = function (definition) {
+    this.config.grid.columnDefs.push (definition);
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.set_column_defs = function (defs) {
+    this.config.grid.columnDefs = defs;
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.get_column_defs = function () {
+    return this.config.grid.columnDefs;
+  };
+
+  AngularDataTable.prototype.refreshGrid = function () {
+    this.$scopectrl.api.grid.refresh();
   };
 
   module.elements.AngularDataTable = AngularDataTable;
@@ -207,7 +231,7 @@
     }else{
       while (rows.length < val) {
         new_row = this.call_cb('appendNewRow', [rows.length]);
-        console.log('will append new row ...', new_row);
+        //console.log('will append new row ...', new_row);
         rows.push (new_row);
       }
     }

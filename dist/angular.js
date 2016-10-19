@@ -338,7 +338,8 @@ angular.module('allex_applib', []);
       model_name = this.getModelName(name);
     $el.attr({
       'data-allex-angular-validate' : '_ctrl.validation.'+model_name,
-      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')'
+      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')',
+      'data-ng-disabled' : 'false'
     });
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
@@ -450,7 +451,7 @@ angular.module('allex_applib', []);
 
   AngularFormLogic.prototype.set_valid = function (val) {
     if (this.valid === val) return false;
-    console.log('AngularFormLogic ',this.id,' will say valid', val);
+    //console.log('AngularFormLogic ',this.id,' will say valid', val);
     this.valid = val;
     return true;
   };
@@ -458,6 +459,21 @@ angular.module('allex_applib', []);
   AngularFormLogic.prototype.empty = function () {
     this.set('data', {});
   };
+
+  AngularFormLogic.prototype.setInputEnabled = function (fieldname, enabled) {
+    ///TODO: this does not work ....
+    this.$form.find('[name="'+fieldname+'"]').attr('data-ng-disabled', enabled ? "false" : "true");
+    this.$scopectrl.$apply();
+  };
+
+  AngularFormLogic.prototype.disableInput = function (fieldname) {
+    this.setInputEnabled(fieldname, false);
+  };
+
+  AngularFormLogic.prototype.enableInput = function (fieldname) {
+    this.setInputEnabled(fieldname, true);
+  };
+
 
   module.elements.AngularFormLogic = AngularFormLogic;
   applib.registerElementType ('AngularFormLogic', AngularFormLogic);
@@ -519,7 +535,6 @@ angular.module('allex_applib', []);
     return f(value, this.data);
   };
 
-
   angular_module.controller('allexAngularFormLogicController', ['$scope', function ($scope) {
     new AllexAngularFormLogicController($scope);
   }]);
@@ -574,7 +589,7 @@ angular.module('allex_applib', []);
   AngularDataTable.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
 
-    var editable = lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
+    var editable = this.config.grid.enableCellEdit || lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
     this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
 
     var $container = $('<div class="table_container"></div>');
@@ -623,7 +638,7 @@ angular.module('allex_applib', []);
     }
 
     var f = this.getConfigVal('config.fAppendNewRow');
-    return f ? f(current_length, row) : row;
+    return f ? f(this, current_length, row) : row;
   };
 
   AngularDataTable.prototype.get_rows = function () {
@@ -651,6 +666,30 @@ angular.module('allex_applib', []);
   AngularDataTable.prototype.$apply = function () {
     BasicAngularElement.prototype.$apply.call(this);
     this.$scopectrl.api.core.refresh();
+  };
+
+
+  AngularDataTable.prototype.removeAllColumns = function () {
+    this.config.grid.columnDefs.splice(0, this.config.grid.columnDefs.length);
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.appendColumn = function (definition) {
+    this.config.grid.columnDefs.push (definition);
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.set_column_defs = function (defs) {
+    this.config.grid.columnDefs = defs;
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.get_column_defs = function () {
+    return this.config.grid.columnDefs;
+  };
+
+  AngularDataTable.prototype.refreshGrid = function () {
+    this.$scopectrl.api.grid.refresh();
   };
 
   module.elements.AngularDataTable = AngularDataTable;
@@ -745,7 +784,7 @@ angular.module('allex_applib', []);
     }else{
       while (rows.length < val) {
         new_row = this.call_cb('appendNewRow', [rows.length]);
-        console.log('will append new row ...', new_row);
+        //console.log('will append new row ...', new_row);
         rows.push (new_row);
       }
     }
