@@ -855,7 +855,15 @@ angular.module('allex_applib', []);
       deps = ['allex_applib'];
     }
     angular.module('AllexActiveApp', deps);
+    angular.module('AllexActiveApp').run (this._onModuleStarted.bind(this));
     angular.bootstrap(document, ['AllexActiveApp']);
+  };
+
+  AngularBootstrapper.prototype._onModuleStarted = function () {
+    var f = this.getConfigVal ('onBootstrapped');
+    if (lib.isFunction (f)) f();
+    f = window.AllexAngularBootstrapped;
+    if (lib.isFunction(f)) f();
   };
 
   AngularBootstrapper.prototype.DEFAULT_CONFIG = function () {
