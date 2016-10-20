@@ -71,7 +71,8 @@
       model_name = this.getModelName(name);
     $el.attr({
       'data-allex-angular-validate' : '_ctrl.validation.'+model_name,
-      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')'
+      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')',
+      'data-ng-disabled' : 'false'
     });
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
@@ -183,7 +184,7 @@
 
   AngularFormLogic.prototype.set_valid = function (val) {
     if (this.valid === val) return false;
-    console.log('AngularFormLogic ',this.id,' will say valid', val);
+    //console.log('AngularFormLogic ',this.id,' will say valid', val);
     this.valid = val;
     return true;
   };
@@ -191,6 +192,21 @@
   AngularFormLogic.prototype.empty = function () {
     this.set('data', {});
   };
+
+  AngularFormLogic.prototype.setInputEnabled = function (fieldname, enabled) {
+    ///TODO: this does not work ....
+    this.$form.find('[name="'+fieldname+'"]').attr('data-ng-disabled', enabled ? "false" : "true");
+    this.$scopectrl.$apply();
+  };
+
+  AngularFormLogic.prototype.disableInput = function (fieldname) {
+    this.setInputEnabled(fieldname, false);
+  };
+
+  AngularFormLogic.prototype.enableInput = function (fieldname) {
+    this.setInputEnabled(fieldname, true);
+  };
+
 
   module.elements.AngularFormLogic = AngularFormLogic;
   applib.registerElementType ('AngularFormLogic', AngularFormLogic);
@@ -251,7 +267,6 @@
     if (!lib.isFunction (f)) return true;
     return f(value, this.data);
   };
-
 
   angular_module.controller('allexAngularFormLogicController', ['$scope', function ($scope) {
     new AllexAngularFormLogicController($scope);
