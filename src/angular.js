@@ -20,7 +20,7 @@ angular.module ('allex_applib', []);
   };
 
   AngularPreProcessor.prototype.process = function (desc) {
-    if (!desc.resources) return;
+    if (!desc || !desc.resources) return;
     var resources = desc.resources, 
       angular_resource = null, 
       cnt = 0,
