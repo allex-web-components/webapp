@@ -213,9 +213,6 @@
 
   WebElement.prototype.set_actual = function (val) {
     if (!this.$element) return false;
-    if (this.get('id') === 'SlotResources'){
-      console.log('will set actual to', val);
-    }
     return BasicElement.prototype.set_actual.call(this, val);
   };
 
