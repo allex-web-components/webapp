@@ -69,7 +69,5 @@ angular.module ('allex_applib', []);
   }
 
   registerPreprocessor (new AngularPreProcessor());
-
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib,ALLEX.WEB_COMPONENTS.allex_web_webappcomponent);
 

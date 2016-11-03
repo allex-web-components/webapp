@@ -74,7 +74,10 @@
 
   AngularDataTable.prototype.set_data = function (data) {
     var ret = DataElementMixIn.prototype.set_data.call(this,data);
-    if (this.hasDataChanged(ret)) this.$scopectrl.set('data', data);
+    if (this.hasDataChanged(ret)) {
+      this.$scopectrl.set('data', data);
+      this.$scopectrl.api.core.refresh();
+    }
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {

@@ -69,8 +69,6 @@ angular.module ('allex_applib', []);
   }
 
   registerPreprocessor (new AngularPreProcessor());
-
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib,ALLEX.WEB_COMPONENTS.allex_web_webappcomponent);
 
 //samo da te vidim
@@ -279,6 +277,7 @@ angular.module('allex_applib', []);
     BasicAngularElementController = module.elements.BasicAngularElementController,
     BasicAngularElement = module.elements.BasicAngularElement,
     q = lib.q,
+    BasicModifier = applib.BasicModifier,
     BRACKET_END = /\[\]$/;
 
 
@@ -554,6 +553,51 @@ angular.module('allex_applib', []);
       }
     };
   });
+
+  function AngularFormLogicSubmitModifier (options) {
+    BasicModifier.call(this, options);
+  }
+
+  lib.inherit (AngularFormLogicSubmitModifier, BasicModifier);
+  AngularFormLogicSubmitModifier.prototype.destroy = function () {
+    BasicModifier.prototype.destroy.call(this);
+  };
+
+  AngularFormLogicSubmitModifier.prototype.doProcess = function (name, elements, links, logic, resources) {
+    var submitid = name+'Submit',
+      path = '.'+submitid;
+
+    elements.push ({
+      name : submitid,
+      type : 'WebElement'
+    });
+
+    links.push ({
+      source : path+'.$element!click',
+      target : '.>fireSubmit'
+    });
+
+    switch (this.getConfigVal('actualon')){
+      default : 
+      case 'valid' : {
+        links.push ({
+          source : '.:valid',
+          target : path+':actual'
+        });
+        break;
+      }
+    }
+  };
+
+  AngularFormLogicSubmitModifier.ALLOWED_ON = ['AngularFormLogic'];
+  AngularFormLogicSubmitModifier.prototype.DEFAULT_CONFIG = function () {
+    return {
+      actualon : 'valid'
+    };
+  };
+
+  applib.registerModifier ('AngularFormLogic.submit', AngularFormLogicSubmitModifier);
+
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
 //samo da te vidim
 (function (allex, module, applib, angular_module) {
@@ -632,7 +676,10 @@ angular.module('allex_applib', []);
 
   AngularDataTable.prototype.set_data = function (data) {
     var ret = DataElementMixIn.prototype.set_data.call(this,data);
-    if (this.hasDataChanged(ret)) this.$scopectrl.set('data', data);
+    if (this.hasDataChanged(ret)) {
+      this.$scopectrl.set('data', data);
+      this.$scopectrl.api.core.refresh();
+    }
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {

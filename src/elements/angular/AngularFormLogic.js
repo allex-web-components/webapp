@@ -7,6 +7,7 @@
     BasicAngularElementController = module.elements.BasicAngularElementController,
     BasicAngularElement = module.elements.BasicAngularElement,
     q = lib.q,
+    BasicModifier = applib.BasicModifier,
     BRACKET_END = /\[\]$/;
 
 
@@ -282,4 +283,49 @@
       }
     };
   });
+
+  function AngularFormLogicSubmitModifier (options) {
+    BasicModifier.call(this, options);
+  }
+
+  lib.inherit (AngularFormLogicSubmitModifier, BasicModifier);
+  AngularFormLogicSubmitModifier.prototype.destroy = function () {
+    BasicModifier.prototype.destroy.call(this);
+  };
+
+  AngularFormLogicSubmitModifier.prototype.doProcess = function (name, elements, links, logic, resources) {
+    var submitid = name+'Submit',
+      path = '.'+submitid;
+
+    elements.push ({
+      name : submitid,
+      type : 'WebElement'
+    });
+
+    links.push ({
+      source : path+'.$element!click',
+      target : '.>fireSubmit'
+    });
+
+    switch (this.getConfigVal('actualon')){
+      default : 
+      case 'valid' : {
+        links.push ({
+          source : '.:valid',
+          target : path+':actual'
+        });
+        break;
+      }
+    }
+  };
+
+  AngularFormLogicSubmitModifier.ALLOWED_ON = ['AngularFormLogic'];
+  AngularFormLogicSubmitModifier.prototype.DEFAULT_CONFIG = function () {
+    return {
+      actualon : 'valid'
+    };
+  };
+
+  applib.registerModifier ('AngularFormLogic.submit', AngularFormLogicSubmitModifier);
+
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
