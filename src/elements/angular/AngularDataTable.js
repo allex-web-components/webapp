@@ -25,7 +25,15 @@
   };
 
   function checkIfEditable (item) {
-    if (item.enableCellEdit) return true;
+    checkIfPropIsTrue ('enableCellEdit', item);
+  }
+
+  function checkIfResizable (item) {
+    checkIfPropIsTrue ('enableColumnResizing', item);
+  }
+
+  function checkIfPropIsTrue (prop, item) {
+    if (item[prop]) return true;
   }
 
   AngularDataTable.prototype._replaceCellTemplate = function (item, index, arr) {
@@ -37,6 +45,7 @@
     BasicAngularElement.prototype.initialize.call(this);
 
     var editable = this.config.grid.enableCellEdit || lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
+    var resizable = this.config.grid.enableColumnResizing || lib.traverseConditionally (this.getColumnDefs(), checkIfResizable);
     this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
 
     var $container = $('<div class="table_container"></div>');
@@ -45,6 +54,10 @@
 
     if (editable) {
       $container.attr('ui-grid-edit','');
+    }
+
+    if (resizable) {
+      $container.attr('ui-grid-resize-columns', '');
     }
     $container.addClass('grid');
 
@@ -55,7 +68,14 @@
     if ($actions.length === 0) {
       return;
     }
-    this.config.grid.columnDefs.unshift ({ displayName: $actions.attr('data-title') || 'Actions', cellTemplate: $actions.html(), field: '-'});
+    var cd = lib.arryOperations.findElementWithProperty (this.config.grid.columnDefs, 'field', '-'),
+      actions = { displayName: $actions.attr('data-title') || 'Actions', cellTemplate: $actions.html()};
+    if (cd) {
+      if (!cd.displayName) cd.displayName = actions.displayName;
+      if (!cd.cellTemplate) cd.cellTemplate = actions.cellTemplate;
+    }else{
+      this.config.grid.columnDefs.unshift (lib.extend ({}, actions, {field : '-'}));
+    }
   };
 
   AngularDataTable.prototype._onScope = function (_ctrl) {
@@ -144,7 +164,7 @@
 
   module.elements.AngularDataTable = AngularDataTable;
   applib.registerElementType('AngularDataTable', AngularDataTable);
-  module.ANGULAR_REQUIREMENTS.add ('AngularDataTable', ['ui.grid','ui.grid.edit', 'ui.grid.autoResize']);
+  module.ANGULAR_REQUIREMENTS.add ('AngularDataTable', ['ui.grid','ui.grid.edit', 'ui.grid.autoResize', 'ui.grid.resizeColumns']);
 
   //This is angular part of code ... //and what about this ... raise ....
   function AllexAngularDataTableController ($scope, $parse) {
