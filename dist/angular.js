@@ -403,7 +403,7 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.get_data = function () {
-    return this.$scopectrl.get('data');
+    return this.$scopectrl ? this.$scopectrl.get('data') : null;
   };
 
   AngularFormLogic.prototype.getModelName = function (name) {
@@ -678,9 +678,6 @@ angular.module('allex_applib', []);
     }else{
       this.config.grid.columnDefs.unshift (lib.extend ({}, actions, {field : '-'}));
     }
-
-    /*
-    */
   };
 
   AngularDataTable.prototype._onScope = function (_ctrl) {

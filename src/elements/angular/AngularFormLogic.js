@@ -133,7 +133,7 @@
   };
 
   AngularFormLogic.prototype.get_data = function () {
-    return this.$scopectrl.get('data');
+    return this.$scopectrl ? this.$scopectrl.get('data') : null;
   };
 
   AngularFormLogic.prototype.getModelName = function (name) {
