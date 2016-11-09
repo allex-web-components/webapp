@@ -436,6 +436,11 @@ angular.module('allex_applib', []);
     }
   };
 
+  AngularFormLogic.prototype.resetElement = function (ext) {
+    BasicAngularElement.prototype.resetElement.call(this, ext);
+    this.resetForm(ext);
+  };
+
   AngularFormLogic.prototype.resetForm = function (ext) {
     this._setInitial(ext);
   };
