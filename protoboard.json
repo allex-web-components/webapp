@@ -10,7 +10,8 @@
       "src/resources/WebFont.js",
       "src/resources/URLGenerator.js",
       "src/mixins/DataElementMixIn.js",
-      "src/elements/DataAwareElement.js"
+      "src/elements/DataAwareElement.js",
+      "src/misc/router.js"
     ],
     "howler" : [
       "src/resources/Howler.js"

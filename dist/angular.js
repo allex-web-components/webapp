@@ -580,9 +580,12 @@ angular.module('allex_applib', []);
     switch (this.getConfigVal('actualon')){
       default : 
       case 'valid' : {
-        links.push ({
-          source : '.:valid',
-          target : path+':actual'
+        logic.push ({
+          triggers : [ '.:valid, .:actual' ],
+          references : path+', .',
+          handler : function (submit, form) {
+            submit.set('actual', form.get('valid') && form.get('actual'));
+          }
         });
         break;
       }

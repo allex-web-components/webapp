@@ -5,7 +5,8 @@
     APP : null,
     elements: {},
     mixins : {},
-    SlugStorage : ss
+    SlugStorage : ss,
+    misc : {}
   };
 
   global.AllexWebAppSlugStorage = ss;
