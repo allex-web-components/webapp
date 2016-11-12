@@ -292,11 +292,15 @@ angular.module('allex_applib', []);
     this._default_values = {};
     this.change = new lib.HookCollection();
     this.initial = options ? options.initial : null;
+    this.ftion_status = null;
+    this.progress = null;
     this.array_keys = options ? options.array_keys : null;
   }
 
   lib.inherit (AngularFormLogic, BasicAngularElement);
   AngularFormLogic.prototype.__cleanUp = function () {
+    this.progress = null;
+    this.ftion_status = null;
     this.array_keys = null;
     this.initial = null;
     this.change.destroy();
@@ -313,12 +317,27 @@ angular.module('allex_applib', []);
     BasicAngularElement.prototype.__cleanUp.call(this);
   };
 
+  AngularFormLogic.prototype.set_ftion_status = function (val) {
+    this.ftion_status = val;
+    if (!this.$scopectrl) return;
+    this.$scopectrl.set('ftion_status', val);
+  };
+
+  AngularFormLogic.prototype.set_progress = function (val) {
+    this.progress = val;
+    if (!this.$scopectrl) return;
+    this.$scopectrl.set('progress', val);
+  };
+
   AngularFormLogic.prototype._unlisten = function (f) {
     if (lib.isFunction (f)) f();
   };
 
   AngularFormLogic.prototype.set_actual = function (val) {
     BasicAngularElement.prototype.set_actual.call(this, val);
+    //reset ftion_status and progress on every actual change
+    this.set('ftion_status', null);
+    this.set('progress', null);
   };
 
   AngularFormLogic.prototype.initialize = function () {
@@ -340,10 +359,16 @@ angular.module('allex_applib', []);
     var $el = jQuery(el),
       name = $el.attr('name'),
       model_name = this.getModelName(name);
+
+    var old_read_only = $el.attr('data-ng-readonly'),
+      new_read_only = old_read_only && old_read_only.length ? '('+old_read_only+') ||' : '';
+
+    new_read_only += '(_ctrl.disabled || _ctrl.progress)';
+
     $el.attr({
       'data-allex-angular-validate' : '_ctrl.validation.'+model_name,
       'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')',
-      'data-ng-disabled' : 'false'
+      'data-ng-readonly' : new_read_only
     });
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
@@ -420,6 +445,8 @@ angular.module('allex_applib', []);
     ctrl.set('_onChange', this._onChanged.bind(this));
     lib.traverseShallow (this._validfields_l, this._watchForValid.bind(this, ctrl.scope, this.$form.attr('name')));
     ctrl.set('config', this.getConfigVal('form'));
+    ctrl.set('progress', this.get('progress'));
+    ctrl.set('ftion_status', this.get('ftion_status'));
     if (this.initial) lib.runNext(this._setInitial.bind(this));
   };
 
@@ -495,9 +522,13 @@ angular.module('allex_applib', []);
     this.validation = null;
     this._onChange = null;
     this.config = null;
+    this.progress = null;
+    this.ftion_status = null;
   }
   lib.inherit(AllexAngularFormLogicController, BasicAngularElementController);
   AllexAngularFormLogicController.prototype.__cleanUp = function () {
+    this.ftion_status = null;
+    this.progress = null;
     this.validation = null;
     if (this._watcher) this._watcher();
     this._watcher = null;
@@ -606,6 +637,60 @@ angular.module('allex_applib', []);
   };
 
   applib.registerModifier ('AngularFormLogic.submit', AngularFormLogicSubmitModifier);
+
+
+  function SubmissionModifier (options) {
+    BasicModifier.call(this, options);
+    console.log('1111 SubmissionModifier created');
+  }
+
+  lib.inherit (SubmissionModifier, BasicModifier);
+  SubmissionModifier.prototype.destroy = function () {
+    BasicModifier.prototype.destroy.call(this);
+  };
+
+  SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
+    var form = this.getConfigVal('form'),
+      ftion = this.getConfigVal('ftion'),
+      filter = this.getConfigVal('filter');
+
+    links.push ({
+      source : form+'!submit',
+      target : ftion,
+      filter : filter
+    });
+
+    links.push ({
+      source : ftion,
+      target : form+':progress',
+      filter : this._processProgress.bind(this)
+    });
+
+    links.push ({
+      source : ftion,
+      target : form+':ftion_status',
+      filter : this._processStatus.bind(this)
+    });
+  };
+
+  SubmissionModifier.prototype._processProgress = function (progress) {
+    return progress && progress.working && progress.progress;
+  };
+
+  SubmissionModifier.prototype._processStatus = function (sttus) {
+    if (!sttus || sttus.working) return null;
+    if (sttus.error) return {error : sttus.error};
+    if (sttus.result)return {success:sttus.result};
+
+    return null;
+  };
+  SubmissionModifier.prototype.DEFAULT_CONFIG = function() {
+    return null;
+  };
+
+  applib.registerModifier('SubmissionModifier', SubmissionModifier);
+
+
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
 //samo da te vidim
@@ -908,7 +993,6 @@ angular.module('allex_applib', []);
     BasicAngularElement.call(this, id, options);
     this.data = null;
     this._temp_cache = null;
-    window.TESTME = this;
   }
   lib.inherit (AngularNotification, BasicAngularElement);
 
@@ -1076,7 +1160,6 @@ angular.module('allex_applib', []);
   };
 
   BootstrapModalModifier.prototype._onActual = function (el, actual) {
-    console.log('go for actual' ,actual);
     el.$element.modal(actual ? 'show': 'hide');
   };
 
