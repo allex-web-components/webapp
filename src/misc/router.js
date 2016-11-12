@@ -154,13 +154,16 @@
       this.active_router.clear();
     }
 
-
-    this.active_router = name ? this.role_router.pagesmap.get(name).router : null;
+    if (name) {
+      var page = this.role_router.pagesmap.get(name);
+      this.active_router = page ? page.router : null;
+    }else{
+      this.active_router = null;
+    }
 
     if (this.active_router) {
       this.active_router.reset();
     }
-
   };
 
 

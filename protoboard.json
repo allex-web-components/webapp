@@ -27,6 +27,7 @@
       "src/elements/angular/AngularElement.js",
       "src/elements/angular/AngularFormLogic.js",
       "src/elements/angular/AngularDataTable.js",
+      "src/elements/angular/AngularNotification.js",
       "src/resources/AngularBootstrapper.js"
     ],
     "apploader" : [

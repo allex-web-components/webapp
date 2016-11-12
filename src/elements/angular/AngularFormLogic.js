@@ -298,7 +298,8 @@
     BasicModifier.prototype.destroy.call(this);
   };
 
-  AngularFormLogicSubmitModifier.prototype.doProcess = function (name, elements, links, logic, resources) {
+  AngularFormLogicSubmitModifier.prototype.doProcess = function (name, options, links, logic, resources) {
+    var elements = options.elements;
     var submitid = name+'Submit',
       path = '.'+submitid;
 

@@ -9,6 +9,8 @@
   function WebElement (id, options)  {
     BasicElement.call(this, id, options);
     this.$element = null;
+    this._addHook ('onShown');
+    this._addHook ('onHidden');
   }
   lib.inherit (WebElement, BasicElement);
 
@@ -21,10 +23,10 @@
     BasicElement.prototype.initialize.call(this);
     this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
+    this.fireInitializationDone();
+    this.attachHook ('onShown', this.getConfigVal('onShown'));
+    this.attachHook ('onHidden', this.getConfigVal('onHidden'));
     this.set_actual(!!this.get('actual'));
-    if (lib.isFunction (this.getConfigVal ('onInitialized'))){
-      this.getConfigVal('onInitialized')(this);
-    }
   };
 
   WebElement.prototype.set_actual = function (val) {
@@ -67,7 +69,6 @@
   };
 
   WebElement.prototype.show = function () {
-    console.log('will show ', this.get('id'));
     var visible_class = this.getConfigVal('visible_class'),
       show_jq_function = this.getConfigVal('show_jq_function');
 
@@ -78,19 +79,16 @@
     if (show_jq_function) {
       if (lib.isString(show_jq_function)){
         this.$element[show_jq_function]();
-        return;
       }
 
       if (lib.isArray(show_jq_function)){
         var name = show_jq_function[0];
         this.$element[name].apply(this.$element, show_jq_function.slice(1));
-        return;
       }
+    }else{
+      this.$element.show();
     }
-    this.$element.show();
-    var onShown = this.getConfigVal('onShown');
-    if (!lib.isFunction(onShown)) return;
-    onShown(this);
+    this.fireHook ('onShown');
   };
 
   WebElement.prototype.hide = function () {
@@ -105,17 +103,17 @@
     if (hide_jq_function) {
       if (lib.isString(hide_jq_function)){
         this.$element[hide_jq_function]();
-        return;
       }
 
       if (lib.isArray(hide_jq_function)){
         var name = hide_jq_function[0];
         this.$element[name].apply(this.$element, hide_jq_function.slice(1));
-        return;
       }
+    }else{
+      this.$element.hide();
     }
 
-    this.$element.hide();
+    this.fireHook('onHidden');
   };
 
   WebElement.prototype.getElement = function (path) {
