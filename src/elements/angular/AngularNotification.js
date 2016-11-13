@@ -84,26 +84,32 @@
       fconf = this.getConfigVal ('functionConfigs'),
       title = null,
       name = null,
-      content_data = null;
+      content_data = null,
+      statusClass = null;
 
     if (data.data.error) {
       content_data = data.data.error;
       name = data.name+'_error';
       title = this.getConfigVal('defaultErrorTitle');
+      statusClass = 'error';
     }else if (data.data.progress) {
       content_data = data.data.progress;
       name = data.name+'_progress';
       title = this.getConfigVal('defaultProgressTitle');
+      statusClass = 'progress';
     }else if (data.data.result) {
       content_data = data.data.result;
       name = data.name+'_success';
       title = this.getConfigVal ('defaultSuccessTitle');
+      statusClass = 'success';
     }
 
     if (fconf && fconf[name]){
       notificationClass = fconf.notificationClass;
       title = fconf.title;
     }
+
+    notificationClass = (notificationClass || '')+' '+statusClass;
     this.set('data', {name : name, content_data : content_data, notificationClass : notificationClass, title : title});
   };
 

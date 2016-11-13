@@ -318,9 +318,34 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.set_ftion_status = function (val) {
+    var was_active = false;
+    if (val) {
+      if (this.ftion_status) {
+        was_active = this.ftion_status.working && val.result;
+      }else{
+        if (val.result){
+          was_active = true;
+        }
+      }
+    }
+
+
     this.ftion_status = val;
+    var closeOnSuccess = this.getConfigVal('closeOnSuccess');
+    console.log('was active?', was_active, closeOnSuccess);
+    if (this.$scopectrl && was_active && (true === closeOnSuccess || lib.isNumber(closeOnSuccess))) {
+      this.doCloseOnSuccess(closeOnSuccess);
+    }
+
+
     if (!this.$scopectrl) return;
     this.$scopectrl.set('ftion_status', val);
+  };
+
+  AngularFormLogic.prototype.doCloseOnSuccess = function (val) {
+    if (true === val) val = 0;
+    this.$scopectrl.set('disabled', false);
+    lib.runNext (this.set.bind(this, 'actual', false), val);
   };
 
   AngularFormLogic.prototype.set_progress = function (val) {
@@ -338,6 +363,9 @@ angular.module('allex_applib', []);
     //reset ftion_status and progress on every actual change
     this.set('ftion_status', null);
     this.set('progress', null);
+    if (this.$scopectrl) {
+      this.$scopectrl.set ('disabled', !val);
+    }
   };
 
   AngularFormLogic.prototype.initialize = function () {
@@ -447,6 +475,7 @@ angular.module('allex_applib', []);
     ctrl.set('config', this.getConfigVal('form'));
     ctrl.set('progress', this.get('progress'));
     ctrl.set('ftion_status', this.get('ftion_status'));
+    ctrl.set('disabled', !this.get('actual'));
     if (this.initial) lib.runNext(this._setInitial.bind(this));
   };
 
@@ -524,9 +553,11 @@ angular.module('allex_applib', []);
     this.config = null;
     this.progress = null;
     this.ftion_status = null;
+    this.disabled = false;
   }
   lib.inherit(AllexAngularFormLogicController, BasicAngularElementController);
   AllexAngularFormLogicController.prototype.__cleanUp = function () {
+    this.disabled = null;
     this.ftion_status = null;
     this.progress = null;
     this.validation = null;
@@ -641,7 +672,6 @@ angular.module('allex_applib', []);
 
   function SubmissionModifier (options) {
     BasicModifier.call(this, options);
-    console.log('1111 SubmissionModifier created');
   }
 
   lib.inherit (SubmissionModifier, BasicModifier);
@@ -652,7 +682,9 @@ angular.module('allex_applib', []);
   SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
     var form = this.getConfigVal('form'),
       ftion = this.getConfigVal('ftion'),
-      filter = this.getConfigVal('filter');
+      filter = this.getConfigVal('filter'),
+      closeOnSuccess = this.getConfigVal('closeOnSuccess'),
+      closeOnSuccessAfter = this.getConfigVal('closeOnSuccessAfter') || 0;
 
     links.push ({
       source : form+'!submit',
@@ -680,7 +712,7 @@ angular.module('allex_applib', []);
   SubmissionModifier.prototype._processStatus = function (sttus) {
     if (!sttus || sttus.working) return null;
     if (sttus.error) return {error : sttus.error};
-    if (sttus.result)return {success:sttus.result};
+    if (sttus.result)return {result:sttus.result};
 
     return null;
   };
@@ -1067,26 +1099,32 @@ angular.module('allex_applib', []);
       fconf = this.getConfigVal ('functionConfigs'),
       title = null,
       name = null,
-      content_data = null;
+      content_data = null,
+      statusClass = null;
 
     if (data.data.error) {
       content_data = data.data.error;
       name = data.name+'_error';
       title = this.getConfigVal('defaultErrorTitle');
+      statusClass = 'error';
     }else if (data.data.progress) {
       content_data = data.data.progress;
       name = data.name+'_progress';
       title = this.getConfigVal('defaultProgressTitle');
+      statusClass = 'progress';
     }else if (data.data.result) {
       content_data = data.data.result;
       name = data.name+'_success';
       title = this.getConfigVal ('defaultSuccessTitle');
+      statusClass = 'success';
     }
 
     if (fconf && fconf[name]){
       notificationClass = fconf.notificationClass;
       title = fconf.title;
     }
+
+    notificationClass = (notificationClass || '')+' '+statusClass;
     this.set('data', {name : name, content_data : content_data, notificationClass : notificationClass, title : title});
   };
 
