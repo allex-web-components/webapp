@@ -118,6 +118,11 @@
       name = $el.attr('name'),
       model_name = this.getModelName(name);
 
+    if (!model_name) {
+      console.warn ('There is no name for input field ', $el.attr('id'), 'form logic', this.get('id'));
+      return;
+    }
+
     var old_read_only = $el.attr('data-ng-readonly'),
       new_read_only = old_read_only && old_read_only.length ? '('+old_read_only+') ||' : '';
 

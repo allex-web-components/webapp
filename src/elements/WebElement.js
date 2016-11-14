@@ -30,7 +30,9 @@
   };
 
   WebElement.prototype.set_actual = function (val) {
-    if (!this.$element) return false;
+    if (!this.$element) {
+      this.actual = val;
+    }
     return BasicElement.prototype.set_actual.call(this, val);
   };
 
@@ -69,6 +71,7 @@
   };
 
   WebElement.prototype.show = function () {
+    if (!this.$element) return;
     var visible_class = this.getConfigVal('visible_class'),
       show_jq_function = this.getConfigVal('show_jq_function');
 
@@ -92,7 +95,7 @@
   };
 
   WebElement.prototype.hide = function () {
-    //console.log('will hide',this.get('id'));
+    if (!this.$element) return;
      var visible_class = this.getConfigVal('visible_class'),
       hide_jq_function = this.getConfigVal('hide_jq_function');
 
