@@ -409,30 +409,54 @@
     BasicModifier.prototype.destroy.call(this);
   };
 
+  function createSubmissionTriggers(item) {
+    return item.ftion;
+  }
+
   SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
     var form = this.getConfigVal('form'),
-      ftion = this.getConfigVal('ftion'),
-      filter = this.getConfigVal('filter'),
+      cbs = this.getConfigVal('cbs'),
       closeOnSuccess = this.getConfigVal('closeOnSuccess'),
       closeOnSuccessAfter = this.getConfigVal('closeOnSuccessAfter') || 0;
 
-    links.push ({
-      source : form+'!submit',
-      target : ftion,
-      filter : filter
+    logic.push ({
+        triggers : form+'!submit',
+        references : cbs.map (createSubmissionTriggers).join (','),
+        handler : this._onSubmit.bind(this, cbs)
     });
 
-    links.push ({
-      source : ftion,
-      target : form+':progress',
-      filter : this._processProgress.bind(this)
-    });
+    var form_progress = form+':progress',
+      ftion_status = form+':ftion_status';
 
-    links.push ({
-      source : ftion,
-      target : form+':ftion_status',
-      filter : this._processStatus.bind(this)
-    });
+    for (var i = 0; i < cbs.length; i++) {
+      links.push ({
+        source : cbs[i].ftion,
+        target : form_progress,
+        filter : this._processProgress.bind(this)
+      },{
+        source : cbs[i].ftion,
+        target : ftion_status,
+        filter : this._processStatus.bind(this)
+      });
+    }
+  };
+
+  SubmissionModifier.prototype._onSubmit = function (cbs) {
+    var len = cbs.length,
+      frefs = Array.prototype.slice.call (arguments, 1, cbs.length+1),
+      data = arguments[1+cbs.length];
+
+
+    for (var i = 0; i < len; i++) {
+      if (cbs[i].conditional && !cbs[i].conditional(data)) continue;
+      frefs[i](lib.isFunction(cbs[i].filter) ?  cbs[i].filter(data) : [data]);
+    }
+  };
+
+
+
+
+  SubmissionModifier.prototype._processFilter = function (filter) {
   };
 
   SubmissionModifier.prototype._processProgress = function (progress) {
