@@ -122,13 +122,21 @@
     this.role = null;
     this.active_router = null;
     this._role_monitor = null;
+    this._user_state_monitor = null;
+    this.role_datasource = null;
   }
 
   lib.inherit (RoleRouter, Router);
   RoleRouter.prototype.destroy = function (){
+    if (this._user_state_monitor){
+      this._user_state_monitor.destroy();
+    }
+    this._user_state_monitor = null;
+
     if (this._role_monitor) {
       this._role_monitor.destroy();
     }
+    this.role_datasource = null;
     this.active_router = null;
     this.role = null;
     this.role_router.destroy();
@@ -195,8 +203,44 @@
     }
   };
 
+  RoleRouter.prototype._listenRole = function () {
+    if (this._role_monitor) this._role_monitor.destroy();
+    this._role_monitor = this.role_datasource.attachListener ('data', this.setRole.bind(this));
+  };
+
   RoleRouter.prototype.setRoleMonitor = function (datasource) {
-    this._role_monitor = datasource.attachListener ('data', this.setRole.bind(this));
+    this.role_datasource = datasource;
+  };
+
+  RoleRouter.prototype.setApp = function (app, name){
+    app.environments.listenFor(name, this._onEnv.bind(this));
+  };
+
+  RoleRouter.prototype._onEnv = function (env) {
+    if (!env) {
+      if (this._role_monitor){
+        this._role_monitor.destroy();
+      }
+      this._role_monitor = null;
+
+      if (this._user_state_monitor){
+        this._user_state_monitor.destroy();
+      }
+      this._user_state_monitor = null;
+      return;
+    }
+    //TODO: nije iskljuceno da odavde mozes da izvuces i monitor za rolu ...
+    this._user_state_monitor = env.attachListener('state', this._onStatusChanged.bind(this));
+  };
+
+  RoleRouter.prototype._onStatusChanged = function (sttus) {
+    if ('established' === sttus){
+      this._listenRole();
+      return;
+    }
+    if (this._role_monitor) this._role_monitor.destroy();
+    this._role_monitor = null;
+    if (this.role !== null) this.setRole(null);
   };
 
   module.Router = Router;

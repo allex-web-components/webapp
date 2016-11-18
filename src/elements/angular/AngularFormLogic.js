@@ -63,8 +63,13 @@
     this.ftion_status = val;
     var closeOnSuccess = this.getConfigVal('closeOnSuccess');
     console.log('was active?', was_active, closeOnSuccess);
-    if (this.$scopectrl && was_active && (true === closeOnSuccess || lib.isNumber(closeOnSuccess))) {
-      this.doCloseOnSuccess(closeOnSuccess);
+    if (this.$scopectrl && was_active) {
+      if (true === closeOnSuccess || lib.isNumber(closeOnSuccess)){
+        this.doCloseOnSuccess(closeOnSuccess);
+      }
+      if (this.getConfigVal('clearOnSuccess')){
+        this.set('data', null);
+      }
     }
 
 
@@ -417,6 +422,8 @@
   function createSubmissionTriggers(item) {
     return item.ftion;
   }
+
+  ///FALI TI DEFAULT_CONFIG i ostalo za validaciju options -a ...
 
   SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
     var form = this.getConfigVal('form'),

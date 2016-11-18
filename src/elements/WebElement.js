@@ -184,5 +184,4 @@
 
   module.elements.WebElement = WebElement;
   applib.registerElementType ('WebElement',WebElement);
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
