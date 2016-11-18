@@ -227,6 +227,7 @@
         this._user_state_monitor.destroy();
       }
       this._user_state_monitor = null;
+      this.setRole(null);
       return;
     }
     //TODO: nije iskljuceno da odavde mozes da izvuces i monitor za rolu ...
