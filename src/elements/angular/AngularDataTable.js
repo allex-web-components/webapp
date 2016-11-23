@@ -46,9 +46,13 @@
 
     var editable = this.config.grid.enableCellEdit || lib.traverseConditionally (this.getColumnDefs(), checkIfEditable);
     var resizable = this.config.grid.enableColumnResizing || lib.traverseConditionally (this.getColumnDefs(), checkIfResizable);
+    var noDataContent = this.getConfigVal('noDataContent');
+    var dataString = this.getConfigVal('grid.data');
     this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
 
-    var $container = $('<div class="table_container"></div>');
+    var $container = $('<div class="table_container" ng-show="'+dataString+'.length"></div>');
+    var $noDataContainer = $('<div class="no_data_container" ng-show = "'+dataString+ ' && !'+dataString+'.length"></div>');
+
     $container.attr('ui-grid', '_ctrl.gridOptions');
     $container.attr('ui-grid-auto-resize', '');
 
@@ -59,10 +63,26 @@
     if (resizable) {
       $container.attr('ui-grid-resize-columns', '');
     }
+
+    //noDataContent
+    if (lib.isString(noDataContent)){
+      if (noDataContent[0] === '#'){ //id
+        $noDataContainer.append($('#references > ' + noDataContent).html());
+      }else{ //markup
+        $noDataContainer.append(noDataContent);
+      }
+    }
+    if (noDataContent === true){ //find markup on pre-defined place in references
+      $noDataContainer.append(this.findDomReference('nodata').html());
+    }
+
     $container.addClass('grid');
 
     this.$element.attr({'data-allex-angular-data-table': ''});
     this.$element.append($container);
+    if (!!noDataContent){
+      this.$element.append($noDataContainer);
+    }
     var $actions = this.findDomReference('actions');
 
     if ($actions.length === 0) {
