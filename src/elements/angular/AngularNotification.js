@@ -65,6 +65,11 @@
       return;
     }
 
+    if (!this.$scopectrl.$templateCache.get(this.templateName(data.name))) {
+      //if no template simply do nothing ...
+      return;
+    }
+
     this.$scopectrl.html = this.templateName(data.name);
     this.$scopectrl.notificationClass = data.notificationClass || null;
     this.$scopectrl.title = data.title || null;

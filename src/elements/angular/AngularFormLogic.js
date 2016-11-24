@@ -15,6 +15,7 @@
     BasicAngularElement.call(this, id, options);
     this.$form = null;
     this.submit = new lib.HookCollection();
+    this.partialSubmit = new lib.HookCollection();
     this.valid = null;
     this._valid_l = null;
     this.validfields = {}; 
@@ -41,6 +42,9 @@
     this.$form = null;
     if (this._valid_l) this._valid_l.destroy();
     this._valid_l = null;
+    this.partialSubmit.destroy();
+    this.partialSubmit = null;
+
     this.submit.destroy();
     this.submit = null;
     this.valid = false;
@@ -109,6 +113,7 @@
 
 
     this.$form = this.$element.is('form') ? this.$element : this.$element.find('form');
+
     this.$form.attr({
       'name': this.get('id'), ///add a name to form, to make angular validation work ....
       'novalidate': ''     ///prevent browser validation ...
@@ -185,6 +190,11 @@
     this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.$scopectrl.data);
   };
 
+  AngularFormLogic.prototype.firePartialSubmit = function (field) {
+    if (!this.isFieldValid(field)) return;
+    this.partialSubmit.fire (field, this.$scopectrl.data ? this.$scopectrl.data[field] : null);
+  };
+
   function setDefaultVals (data, value, key) {
     if (key in data) return;
     data[key] = value;
@@ -252,6 +262,10 @@
     }
     s[key] = !Object.keys(scope[formname][key].$error).length;
     this.set('validfields', s);
+  };
+
+  AngularFormLogic.prototype.isFieldValid = function (field) {
+    return this.$scopectrl && this.$scopectrl.scope[this.get('id')] ? this.$scopectrl.scope[this.get('id')][field].$valid : false;
   };
 
   AngularFormLogic.prototype.set_valid = function (val) {
@@ -465,9 +479,6 @@
     }
   };
 
-
-
-
   SubmissionModifier.prototype._processFilter = function (filter) {
   };
 
@@ -488,6 +499,67 @@
 
   applib.registerModifier('SubmissionModifier', SubmissionModifier);
 
+  function FieldBindingModifier (options) {
+    BasicModifier.call(this, options);
+  }
+  lib.inherit (FieldBindingModifier, BasicModifier);
+  FieldBindingModifier.prototype.destroy = function () {
+    BasicModifier.prototype.destroy.call(this);
+  };
+  FieldBindingModifier.ALLOWED_ON = ['AngularFormLogic'];
 
+  FieldBindingModifier.prototype._prepareItem = function (name, options, links, logic, resources, data) {
+    var path = data.path, field = data.field;
+
+    if (!field) throw new Error('No field given in FieldBindingModifier '+name);
+
+    if (!path) path = name+'_partialSubmit_'+field;
+
+    links.push (
+    {
+      source: '.:actual',
+      target: path+':actual'
+    });
+
+    logic.push (
+    {
+      triggers : ['.:actual', '.:data'],
+      references : '., '+path,
+      handler : this._decide.bind(this, field)
+    },
+    {
+      triggers : path+'.$element!click',
+      references : '.',
+      handler : this._onTrigger.bind(this, field)
+    });
+
+  };
+
+  FieldBindingModifier.prototype.doProcess = function (name, options, links, logic, resources) {
+
+    var list = this.getConfigVal ('list');
+    if (lib.isArray(list)) {
+      list.forEach (this._prepareItem.bind(this, name, options, links, logic, resources));
+      return;
+    }
+
+    var path = this.getConfigVal('path'), field = this.getConfigVal('field');
+    if (field) this._prepareItem (name, options, links, logic, resources, {path : path, field : field});
+  };
+
+  FieldBindingModifier.prototype._decide = function (field, form, el) {
+    ///neka ga ovako za sad ...
+    el.$element.attr('disabled', form.isFieldValid(field) ? null : 'disabled');
+  };
+
+  FieldBindingModifier.prototype._onTrigger = function (field, form) {
+    form.firePartialSubmit(field);
+  };
+
+  FieldBindingModifier.prototype.DEFAULT_CONFIG = function () {
+    return null;
+  };
+
+  applib.registerModifier ('AngularFormLogic.bindField', FieldBindingModifier);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
