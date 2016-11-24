@@ -97,16 +97,22 @@
       name = data.name+'_error';
       title = this.getConfigVal('defaultErrorTitle');
       statusClass = 'error';
-    }else if (data.data.progress) {
-      content_data = data.data.progress;
-      name = data.name+'_progress';
-      title = this.getConfigVal('defaultProgressTitle');
-      statusClass = 'progress';
-    }else if (data.data.result) {
+    }
+    else if (data.data.result) {
       content_data = data.data.result;
       name = data.name+'_success';
       title = this.getConfigVal ('defaultSuccessTitle');
       statusClass = 'success';
+    }
+    else if (data.data.progress) {
+      content_data = data.data.progress;
+      name = data.name+'_progress';
+      title = this.getConfigVal('defaultProgressTitle');
+      statusClass = 'progress';
+      if (!data.data.running) {
+        console.log('got progress, but not running', data);
+        return;
+      }
     }
 
     if (fconf && fconf[name]){
