@@ -937,6 +937,10 @@ angular.module('allex_applib', []);
     }
   };
 
+  AngularDataTable.prototype.getApi = function () {
+    return this.$scopectrl.api;
+  };
+
   AngularDataTable.prototype._onScope = function (_ctrl) {
     var _cbmap = {
       appendNewRow : this.appendNewRow.bind(this)
@@ -1011,6 +1015,16 @@ angular.module('allex_applib', []);
   AngularDataTable.prototype.set_column_defs = function (defs) {
     this.config.grid.columnDefs = defs;
     this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.updateColumnDef = function (name, coldef) {
+    var column = this.getApi().grid.getColumn(name);
+    column.colDef = coldef;
+    this.refreshGrid();
+  };
+
+  AngularDataTable.prototype.getColumnDef = function (name) {
+    return this.getApi().grid.getColumn(name).colDef;
   };
 
   AngularDataTable.prototype.get_column_defs = function () {
