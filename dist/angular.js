@@ -410,9 +410,12 @@ angular.module('allex_applib', []);
 
     $el.attr({
       'data-allex-angular-validate' : '_ctrl.validation.'+model_name,
-      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')',
-      'data-ng-readonly' : new_read_only
+      'data-ng-change' : '_ctrl.onChange(\''+model_name+'\', _ctrl.data.'+model_name+')'
     });
+
+    if (!$el.attr('readonly')){
+      $el.attr('data-ng-readonly',new_read_only);
+    }
 
     if (!$el.attr('data-ng-model') && !$el.attr('ng-model')) {
       $el.attr('data-ng-model', '_ctrl.data.'+model_name);
