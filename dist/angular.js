@@ -672,7 +672,18 @@ angular.module('allex_applib', []);
       target : '.>fireSubmit'
     });
 
-    switch (this.getConfigVal('actualon')){
+    switch (this.getConfigVal('actual')){
+      case 'always' : {
+        links.push ({
+          source : '.:valid',
+          target : '$element'+path+':attr.disabled',
+          filter : this._decideDisabled.bind(this)
+        }, {
+          source : '.:actual',
+          target : path+':actual',
+        });
+        break;
+      }
       default : 
       case 'valid' : {
         logic.push ({
@@ -685,6 +696,9 @@ angular.module('allex_applib', []);
         break;
       }
     }
+  };
+  AngularFormLogicSubmitModifier.prototype._decideDisabled = function (valid) {
+    return valid ? undefined : 'disabled';
   };
 
   AngularFormLogicSubmitModifier.ALLOWED_ON = ['AngularFormLogic'];
@@ -714,9 +728,7 @@ angular.module('allex_applib', []);
 
   SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
     var form = this.getConfigVal('form'),
-      cbs = this.getConfigVal('cbs'),
-      closeOnSuccess = this.getConfigVal('closeOnSuccess'),
-      closeOnSuccessAfter = this.getConfigVal('closeOnSuccessAfter') || 0;
+      cbs = this.getConfigVal('cbs');
 
     logic.push ({
         triggers : form+'!submit',
@@ -834,7 +846,6 @@ angular.module('allex_applib', []);
   };
 
   applib.registerModifier ('AngularFormLogic.bindField', FieldBindingModifier);
-
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
 //samo da te vidim
 (function (allex, module, applib, angular_module) {
@@ -1024,7 +1035,9 @@ angular.module('allex_applib', []);
   };
 
   AngularDataTable.prototype.getColumnDef = function (name) {
-    return this.getApi().grid.getColumn(name).colDef;
+    var column = this.getApi().grid.getColumn(name);
+    return column ? column.colDef : null;
+
   };
 
   AngularDataTable.prototype.get_column_defs = function () {

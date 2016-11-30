@@ -185,7 +185,9 @@
   };
 
   AngularDataTable.prototype.getColumnDef = function (name) {
-    return this.getApi().grid.getColumn(name).colDef;
+    var column = this.getApi().grid.getColumn(name);
+    return column ? column.colDef : null;
+
   };
 
   AngularDataTable.prototype.get_column_defs = function () {
