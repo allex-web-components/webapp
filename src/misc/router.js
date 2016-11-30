@@ -186,7 +186,7 @@
   RoleRouter.prototype.setRole = function (role) {
     this.role = role;
     this._prepareActiveRouter(role);
-    this.role_router.set('page', role ? role : NO_ROLE_PAGE);
+    this.role_router.set('page', role ? role : null);
   };
 
   RoleRouter.prototype.resetToRole = function () {
