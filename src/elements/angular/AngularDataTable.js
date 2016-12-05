@@ -10,17 +10,14 @@
 
   function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
-    DataElementMixIn.call(this);
     this.afterEdit = new lib.HookCollection();
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
   }
   lib.inherit(AngularDataTable, BasicAngularElement);
-  DataElementMixIn.addMethods(AngularDataTable);
 
   AngularDataTable.prototype.__cleanUp = function () {
     this.afterEdit.destroy();
     this.afterEdit = null;
-    DataElementMixIn.prototype.__cleanUp.call(this);
     BasicAngularElement.prototype.__cleanUp.call(this);
   };
 
@@ -99,7 +96,7 @@
   };
 
   AngularDataTable.prototype.getApi = function () {
-    return this.$scopectrl.api;
+    return this.$scopectrl ? this.$scopectrl.api : null;
   };
 
   AngularDataTable.prototype._onScope = function (_ctrl) {
@@ -117,11 +114,11 @@
   };
 
   AngularDataTable.prototype.set_data = function (data) {
-    var ret = DataElementMixIn.prototype.set_data.call(this,data);
-    if (this.hasDataChanged(ret)) {
-      this.$scopectrl.set('data', data);
-      this.$scopectrl.api.core.refresh();
-    }
+    var ret = BasicAngularElement.prototype.set_data.call(this, data);
+    if (false === ret) return;
+
+    this.executeOnScopeIfReady ('set', ['data', data]);
+    this.executeOnScopeIfReady ('api.core.refresh');
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {
@@ -146,11 +143,11 @@
 
 
   AngularDataTable.prototype.set_row_count = function (rc) {
-    return this.$scopectrl.set('row_count', rc);
+    return this.executeOnScopeIfReady ('set', ['row_count', rc]);
   };
 
   AngularDataTable.prototype.get_row_count = function () {
-    return this.$scopectrl.get('row_count');
+    return this.executeOnScopeIfReady ('get', ['row_count']);
   };
 
   AngularDataTable.prototype.getColumnDefs = function () {
@@ -159,43 +156,62 @@
 
   AngularDataTable.prototype.$apply = function () {
     BasicAngularElement.prototype.$apply.call(this);
-    this.$scopectrl.api.core.refresh();
+    this.executeOnScopeIfReady ('api.core.refresh');
   };
 
-
   AngularDataTable.prototype.removeAllColumns = function () {
-    this.config.grid.columnDefs.splice(0, this.config.grid.columnDefs.length);
-    this.refreshGrid();
+    if (this.isScopeReady()) {
+      this.config.grid.columnDefs.splice(0, this.config.grid.columnDefs.length);
+      this.refreshGrid();
+    }else{
+      var cd = this.getColumnDefs();
+      cd.splice (0, cd.length);
+    }
   };
 
   AngularDataTable.prototype.appendColumn = function (definition) {
-    this.config.grid.columnDefs.push (definition);
-    this.refreshGrid();
+    if (this.isScopeReady()){
+      this.config.grid.columnDefs.push (definition);
+      this.refreshGrid();
+    }else{
+      this.getColumnDefs().push(definition);
+    }
   };
 
   AngularDataTable.prototype.set_column_defs = function (defs) {
-    this.config.grid.columnDefs = defs;
-    this.refreshGrid();
+    if (this.isScopeReady()) {
+      this.config.grid.columnDefs = defs;
+      this.refreshGrid();
+    }else{
+      var cd = this.getColumnDefs();
+      cd.splice (0, cd.length);
+      Array.prototype.push.apply(cd, defs);
+    }
   };
 
   AngularDataTable.prototype.updateColumnDef = function (name, coldef) {
-    var column = this.getApi().grid.getColumn(name);
-    column.colDef = coldef;
-    this.refreshGrid();
+    if (this.isScopeReady()){
+      var column = this.getColumnDef(name);
+      column.colDef = coldef;
+      this.refreshGrid();
+      return;
+    }
+
+    var cd = this.getColumnDef (name), all = this.getColumnDefs(), index = all.indexOf(cd);
+    if (index < 0) throw new Error ('No column definition for name ', name);
+    all[index] = coldef;
   };
 
   AngularDataTable.prototype.getColumnDef = function (name) {
-    var column = this.getApi().grid.getColumn(name);
-    return column ? column.colDef : null;
-
-  };
-
-  AngularDataTable.prototype.get_column_defs = function () {
-    return this.config.grid.columnDefs;
+    if (this.isScopeReady()){
+      var column = this.getApi().grid.getColumn (name);
+      return column ? column.colDef : null;
+    }
+    return lib.arryOperations.findElementWithProperty (this.getColumnDefs(), 'name', name);
   };
 
   AngularDataTable.prototype.refreshGrid = function () {
-    this.$scopectrl.api.grid.refresh();
+    this.executeOnScopeIfReady ('api.grid.refresh');
   };
 
   module.elements.AngularDataTable = AngularDataTable;

@@ -8,7 +8,7 @@
   function AngularBootstrapper (options, app) {
     BasicResourceLoader.call(this, lib.extend ({}, options, {ispermanent : true}));
     this._dependentElements = new lib.Map ();
-    app.ready(this._onReady.bind(this));
+    app.onReady(this._onReady.bind(this));
   }
   lib.inherit (AngularBootstrapper, BasicResourceLoader);
 

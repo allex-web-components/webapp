@@ -134,15 +134,19 @@ angular.module('allex_applib', []);
   var lib = allex.lib,
     BasicAngularController = lib.BasicAngularController,
     WebElement = module.elements.WebElement,
+    DataElementMixIn = module.mixins.DataElementMixIn,
     q = lib.q;
 
     function BasicAngularElement (id, options) {
       WebElement.call(this, id, options);
+      DataElementMixIn.call(this);
+      this._addHook('onAngularReady');
       this.$scopectrl = null;
     }
     lib.inherit (BasicAngularElement, WebElement);
     BasicAngularElement.prototype.__cleanUp = function () {
       this.$scopectrl = null;
+      DataElementMixIn.prototype.__cleanUp.call(this);
       WebElement.prototype.__cleanUp.call(this);
     };
 
@@ -150,11 +154,31 @@ angular.module('allex_applib', []);
       this.$scopectrl = val;
       this._onScope(val);
       this._setRaise();
+      this.fireHook('onAngularReady', [this]);
+      this.$scopectrl.set('data', this.get('data'));
+    };
+
+    BasicAngularElement.prototype.isScopeReady = function () {
+      return !!this.$scopectrl;
+    };
+
+    BasicAngularElement.prototype.executeOnScopeIfReady = function (method, args) {
+      if (!this.$scopectrl) return;
+      var fc = lib.readPropertyFromDotDelimitedString (this.$scopectrl, method, true);
+      return fc.val.apply(fc.ctx, args);
     };
 
     BasicAngularElement.prototype._setRaise = function () {
       this.$scopectrl.set('raise', this._doTrigger.bind(this));
       this.$scopectrl.set('_getResource', this.getResource.bind(this));
+    };
+
+    BasicAngularElement.prototype.set_data = function (val) {
+      var ret = DataElementMixIn.prototype.set_data.call(this, val);
+      if (DataElementMixIn.prototype.hasDataChanged.call(this, ret)){
+        this.executeOnScopeIfReady ('set', ['data', this.data]);
+      }
+      return ret;
     };
 
     BasicAngularElement.prototype._doTrigger = function () {
@@ -168,6 +192,7 @@ angular.module('allex_applib', []);
     BasicAngularElement.prototype.initialize = function () {
       WebElement.prototype.initialize.call(this);
       this.$element.data('allex_element', this);
+      this.attachHook('onAngularReady', this.getConfigVal('onAngularReady'));
     };
 
     BasicAngularElement.prototype.$apply = function () {
@@ -182,23 +207,20 @@ angular.module('allex_applib', []);
 //samo da te vidim
 (function (allex, module, applib, angular_module) {
   'use strict';
+  //use this if you want simply to use angular mechanism in any DOM element ....
 
   var lib = allex.lib,
     AngularDataAwareController = module.elements.AngularDataAwareController,
-    DataElementMixIn = module.mixins.DataElementMixIn,
     BasicAngularElement = module.elements.BasicAngularElement,
     q = lib.q;
-
 
     ///This is allexApp part of code ....
     function AngularElement (id, options) {
       BasicAngularElement.call(this, id, options);
-      DataElementMixIn.call(this);
     }
     lib.inherit (AngularElement, BasicAngularElement);
 
     AngularElement.prototype.__cleanUp = function () {
-      DataElementMixIn.prototype.__cleanUp.call(this);
       BasicAngularElement.prototype.__cleanUp.call(this);
     };
 
@@ -207,53 +229,11 @@ angular.module('allex_applib', []);
       this.$element.attr('data-allex-angular-element', '');
     };
 
-    AngularElement.prototype.set_data = function (val) {
-      var ret = DataElementMixIn.prototype.set_data.call(this, val);
-
-      if (DataElementMixIn.prototype.hasDataChanged.call(this, ret)){
-        this.$scopectrl.set('data', this.data);
-      }
-      return ret;
-    };
-
     module.elements.AngularElement = AngularElement;
     applib.registerElementType('AngularElement', AngularElement);
 
-    function AngularFormElement(id, options) {
-      BasicAngularElement.call(this, id, options);
-    }
-    lib.inherit(AngularFormElement, BasicAngularElement);
-    AngularFormElement.prototype.set_data = function (val) {
-      var ret = DataElementMixIn.prototype.set_data.call(this, val),
-        parentscopectrl, myname;
-
-      if (DataElementMixIn.prototype.hasDataChanged.call(this, ret)){
-        parentscopectrl = this.__parent.$scopectrl;
-        myname = this.$element.attr('name');
-        if (parentscopectrl && myname) {
-          parentscopectrl.data[myname] = val;
-        }
-      }
-      return ret;
-    };
-    module.elements.AngularFormElement = AngularFormElement;
-    applib.registerElementType('AngularFormElement', AngularFormElement);
-
-
-  
-    //This is angular part of code ...
-    function AllexAngularElementController($scope) {
-      AngularDataAwareController.call(this, $scope);
-      this.data = null;
-    }
-    lib.inherit (AllexAngularElementController, AngularDataAwareController);
-    AllexAngularElementController.prototype.__cleanUp = function () {
-      this.data = null;
-      AngularDataAwareController.prototype.__cleanUp.call(this);
-    };
-
     angular_module.controller('allexAngularElementController', ['$scope', function ($scope) {
-      new AllexAngularElementController($scope);
+      new AngularDataAwareController($scope);
     }]);
 
     angular_module.directive ('allexAngularElement', [function () {
@@ -266,6 +246,27 @@ angular.module('allex_applib', []);
         }
       };
     }]);
+
+    function AngularFormElement(id, options) {
+      BasicAngularElement.call(this, id, options);
+    }
+    lib.inherit(AngularFormElement, BasicAngularElement);
+    AngularFormElement.prototype.set_data = function (val) {
+      var ret = BasicAngularElement.prototype.set_data.call(this, val),
+        parentscopectrl, myname;
+
+      if (ret !== false) {
+        parentscopectrl = this.__parent.$scopectrl;
+        myname = this.$element.attr('name');
+        if (parentscopectrl && myname) {
+          parentscopectrl.data[myname] = val;
+        }
+      }
+      return ret;
+    };
+    module.elements.AngularFormElement = AngularFormElement;
+    applib.registerElementType('AngularFormElement', AngularFormElement);
+
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
 //samo da te vidim
 (function (allex, module, applib, angular_module) {
@@ -337,7 +338,8 @@ angular.module('allex_applib', []);
     this.ftion_status = val;
     var closeOnSuccess = this.getConfigVal('closeOnSuccess');
     console.log('was active?', was_active, closeOnSuccess);
-    if (this.$scopectrl && was_active) {
+
+    if (this.isScopeReady() && was_active) {
       if (true === closeOnSuccess || lib.isNumber(closeOnSuccess)){
         this.doCloseOnSuccess(closeOnSuccess);
       }
@@ -346,21 +348,19 @@ angular.module('allex_applib', []);
       }
     }
 
-
-    if (!this.$scopectrl) return;
-    this.$scopectrl.set('ftion_status', val);
+    this.executeOnScopeIfReady ('set', ['ftion_status', val]);
   };
 
   AngularFormLogic.prototype.doCloseOnSuccess = function (val) {
     if (true === val) val = 0;
-    this.$scopectrl.set('disabled', false);
+
+    this.executeOnScopeIfReady ('set', ['disabled', false]);
     lib.runNext (this.set.bind(this, 'actual', false), val);
   };
 
   AngularFormLogic.prototype.set_progress = function (val) {
     this.progress = val;
-    if (!this.$scopectrl) return;
-    this.$scopectrl.set('progress', val);
+    this.executeOnScopeIfReady ('set', ['progress', val]);
   };
 
   AngularFormLogic.prototype._unlisten = function (f) {
@@ -372,9 +372,7 @@ angular.module('allex_applib', []);
     //reset ftion_status and progress on every actual change
     this.set('ftion_status', null);
     this.set('progress', null);
-    if (this.$scopectrl) {
-      this.$scopectrl.set ('disabled', !val);
-    }
+    this.executeOnScopeIfReady ('set', ['disabled', !val]);
   };
 
   AngularFormLogic.prototype.initialize = function () {
@@ -460,12 +458,12 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.$scopectrl.data);
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : lib.extend({}, this.data));
   };
 
   AngularFormLogic.prototype.firePartialSubmit = function (field) {
     if (!this.isFieldValid(field)) return;
-    this.partialSubmit.fire (field, this.$scopectrl.data ? this.$scopectrl.data[field] : null);
+    this.partialSubmit.fire (field, this.data ? this.data[field] : null);
   };
 
   function setDefaultVals (data, value, key) {
@@ -475,11 +473,7 @@ angular.module('allex_applib', []);
 
   AngularFormLogic.prototype.set_data = function (data) {
     lib.traverseShallow (this._default_values, setDefaultVals.bind(null, data));
-    this.$scopectrl.set('data', data);
-  };
-
-  AngularFormLogic.prototype.get_data = function () {
-    return this.$scopectrl ? this.$scopectrl.get('data') : null;
+    return BasicAngularElement.prototype.set_data.call(this, data);
   };
 
   AngularFormLogic.prototype.getModelName = function (name) {
@@ -555,7 +549,7 @@ angular.module('allex_applib', []);
   AngularFormLogic.prototype.setInputEnabled = function (fieldname, enabled) {
     ///TODO: this does not work ....
     this.$form.find('[name="'+fieldname+'"]').attr('data-ng-disabled', enabled ? "false" : "true");
-    this.$scopectrl.$apply();
+    this.executeOnScopeIfReady ('$apply');
   };
 
   AngularFormLogic.prototype.disableInput = function (fieldname) {
@@ -860,17 +854,14 @@ angular.module('allex_applib', []);
 
   function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
-    DataElementMixIn.call(this);
     this.afterEdit = new lib.HookCollection();
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
   }
   lib.inherit(AngularDataTable, BasicAngularElement);
-  DataElementMixIn.addMethods(AngularDataTable);
 
   AngularDataTable.prototype.__cleanUp = function () {
     this.afterEdit.destroy();
     this.afterEdit = null;
-    DataElementMixIn.prototype.__cleanUp.call(this);
     BasicAngularElement.prototype.__cleanUp.call(this);
   };
 
@@ -949,7 +940,7 @@ angular.module('allex_applib', []);
   };
 
   AngularDataTable.prototype.getApi = function () {
-    return this.$scopectrl.api;
+    return this.$scopectrl ? this.$scopectrl.api : null;
   };
 
   AngularDataTable.prototype._onScope = function (_ctrl) {
@@ -967,11 +958,11 @@ angular.module('allex_applib', []);
   };
 
   AngularDataTable.prototype.set_data = function (data) {
-    var ret = DataElementMixIn.prototype.set_data.call(this,data);
-    if (this.hasDataChanged(ret)) {
-      this.$scopectrl.set('data', data);
-      this.$scopectrl.api.core.refresh();
-    }
+    var ret = BasicAngularElement.prototype.set_data.call(this, data);
+    if (false === ret) return;
+
+    this.executeOnScopeIfReady ('set', ['data', data]);
+    this.executeOnScopeIfReady ('api.core.refresh');
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {
@@ -996,11 +987,11 @@ angular.module('allex_applib', []);
 
 
   AngularDataTable.prototype.set_row_count = function (rc) {
-    return this.$scopectrl.set('row_count', rc);
+    return this.executeOnScopeIfReady ('set', ['row_count', rc]);
   };
 
   AngularDataTable.prototype.get_row_count = function () {
-    return this.$scopectrl.get('row_count');
+    return this.executeOnScopeIfReady ('get', ['row_count']);
   };
 
   AngularDataTable.prototype.getColumnDefs = function () {
@@ -1009,43 +1000,62 @@ angular.module('allex_applib', []);
 
   AngularDataTable.prototype.$apply = function () {
     BasicAngularElement.prototype.$apply.call(this);
-    this.$scopectrl.api.core.refresh();
+    this.executeOnScopeIfReady ('api.core.refresh');
   };
 
-
   AngularDataTable.prototype.removeAllColumns = function () {
-    this.config.grid.columnDefs.splice(0, this.config.grid.columnDefs.length);
-    this.refreshGrid();
+    if (this.isScopeReady()) {
+      this.config.grid.columnDefs.splice(0, this.config.grid.columnDefs.length);
+      this.refreshGrid();
+    }else{
+      var cd = this.getColumnDefs();
+      cd.splice (0, cd.length);
+    }
   };
 
   AngularDataTable.prototype.appendColumn = function (definition) {
-    this.config.grid.columnDefs.push (definition);
-    this.refreshGrid();
+    if (this.isScopeReady()){
+      this.config.grid.columnDefs.push (definition);
+      this.refreshGrid();
+    }else{
+      this.getColumnDefs().push(definition);
+    }
   };
 
   AngularDataTable.prototype.set_column_defs = function (defs) {
-    this.config.grid.columnDefs = defs;
-    this.refreshGrid();
+    if (this.isScopeReady()) {
+      this.config.grid.columnDefs = defs;
+      this.refreshGrid();
+    }else{
+      var cd = this.getColumnDefs();
+      cd.splice (0, cd.length);
+      Array.prototype.push.apply(cd, defs);
+    }
   };
 
   AngularDataTable.prototype.updateColumnDef = function (name, coldef) {
-    var column = this.getApi().grid.getColumn(name);
-    column.colDef = coldef;
-    this.refreshGrid();
+    if (this.isScopeReady()){
+      var column = this.getColumnDef(name);
+      column.colDef = coldef;
+      this.refreshGrid();
+      return;
+    }
+
+    var cd = this.getColumnDef (name), all = this.getColumnDefs(), index = all.indexOf(cd);
+    if (index < 0) throw new Error ('No column definition for name ', name);
+    all[index] = coldef;
   };
 
   AngularDataTable.prototype.getColumnDef = function (name) {
-    var column = this.getApi().grid.getColumn(name);
-    return column ? column.colDef : null;
-
-  };
-
-  AngularDataTable.prototype.get_column_defs = function () {
-    return this.config.grid.columnDefs;
+    if (this.isScopeReady()){
+      var column = this.getApi().grid.getColumn (name);
+      return column ? column.colDef : null;
+    }
+    return lib.arryOperations.findElementWithProperty (this.getColumnDefs(), 'name', name);
   };
 
   AngularDataTable.prototype.refreshGrid = function () {
-    this.$scopectrl.api.grid.refresh();
+    this.executeOnScopeIfReady ('api.grid.refresh');
   };
 
   module.elements.AngularDataTable = AngularDataTable;
@@ -1392,7 +1402,7 @@ angular.module('allex_applib', []);
   function AngularBootstrapper (options, app) {
     BasicResourceLoader.call(this, lib.extend ({}, options, {ispermanent : true}));
     this._dependentElements = new lib.Map ();
-    app.ready(this._onReady.bind(this));
+    app.onReady(this._onReady.bind(this));
   }
   lib.inherit (AngularBootstrapper, BasicResourceLoader);
 

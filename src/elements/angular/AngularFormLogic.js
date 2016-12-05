@@ -67,7 +67,8 @@
     this.ftion_status = val;
     var closeOnSuccess = this.getConfigVal('closeOnSuccess');
     console.log('was active?', was_active, closeOnSuccess);
-    if (this.$scopectrl && was_active) {
+
+    if (this.isScopeReady() && was_active) {
       if (true === closeOnSuccess || lib.isNumber(closeOnSuccess)){
         this.doCloseOnSuccess(closeOnSuccess);
       }
@@ -76,21 +77,19 @@
       }
     }
 
-
-    if (!this.$scopectrl) return;
-    this.$scopectrl.set('ftion_status', val);
+    this.executeOnScopeIfReady ('set', ['ftion_status', val]);
   };
 
   AngularFormLogic.prototype.doCloseOnSuccess = function (val) {
     if (true === val) val = 0;
-    this.$scopectrl.set('disabled', false);
+
+    this.executeOnScopeIfReady ('set', ['disabled', false]);
     lib.runNext (this.set.bind(this, 'actual', false), val);
   };
 
   AngularFormLogic.prototype.set_progress = function (val) {
     this.progress = val;
-    if (!this.$scopectrl) return;
-    this.$scopectrl.set('progress', val);
+    this.executeOnScopeIfReady ('set', ['progress', val]);
   };
 
   AngularFormLogic.prototype._unlisten = function (f) {
@@ -102,9 +101,7 @@
     //reset ftion_status and progress on every actual change
     this.set('ftion_status', null);
     this.set('progress', null);
-    if (this.$scopectrl) {
-      this.$scopectrl.set ('disabled', !val);
-    }
+    this.executeOnScopeIfReady ('set', ['disabled', !val]);
   };
 
   AngularFormLogic.prototype.initialize = function () {
@@ -190,12 +187,12 @@
   };
 
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.$scopectrl.data);
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : lib.extend({}, this.data));
   };
 
   AngularFormLogic.prototype.firePartialSubmit = function (field) {
     if (!this.isFieldValid(field)) return;
-    this.partialSubmit.fire (field, this.$scopectrl.data ? this.$scopectrl.data[field] : null);
+    this.partialSubmit.fire (field, this.data ? this.data[field] : null);
   };
 
   function setDefaultVals (data, value, key) {
@@ -205,11 +202,7 @@
 
   AngularFormLogic.prototype.set_data = function (data) {
     lib.traverseShallow (this._default_values, setDefaultVals.bind(null, data));
-    this.$scopectrl.set('data', data);
-  };
-
-  AngularFormLogic.prototype.get_data = function () {
-    return this.$scopectrl ? this.$scopectrl.get('data') : null;
+    return BasicAngularElement.prototype.set_data.call(this, data);
   };
 
   AngularFormLogic.prototype.getModelName = function (name) {
@@ -285,7 +278,7 @@
   AngularFormLogic.prototype.setInputEnabled = function (fieldname, enabled) {
     ///TODO: this does not work ....
     this.$form.find('[name="'+fieldname+'"]').attr('data-ng-disabled', enabled ? "false" : "true");
-    this.$scopectrl.$apply();
+    this.executeOnScopeIfReady ('$apply');
   };
 
   AngularFormLogic.prototype.disableInput = function (fieldname) {
