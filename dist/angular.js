@@ -259,7 +259,13 @@ angular.module('allex_applib', []);
         parentscopectrl = this.__parent.$scopectrl;
         myname = this.$element.attr('name');
         if (parentscopectrl && myname) {
-          parentscopectrl.data[myname] = val;
+          if (parentscopectrl.data) {
+            parentscopectrl.data[myname] = val;
+          }else{
+            var dd = {};
+            dd[myname] = val;
+            parentscopectrl.set('data', dd);
+          }
         }
       }
       return ret;
@@ -458,7 +464,7 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : lib.extend({}, this.data));
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.data);
   };
 
   AngularFormLogic.prototype.firePartialSubmit = function (field) {
@@ -592,6 +598,7 @@ angular.module('allex_applib', []);
   };
 
   AllexAngularFormLogicController.prototype.onChange = function (name, val){
+    console.log('SAMO DA VIDIM ...', name, val);
     if (lib.isFunction(this._onChange)) this._onChange(this.data, name, val);
   };
 

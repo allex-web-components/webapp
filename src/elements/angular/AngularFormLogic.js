@@ -187,7 +187,7 @@
   };
 
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : lib.extend({}, this.data));
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.data);
   };
 
   AngularFormLogic.prototype.firePartialSubmit = function (field) {

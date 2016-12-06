@@ -89,10 +89,10 @@
   };
 
   VektrCanvas.prototype.unload = function () {
-    this.renderer.destroy();
+    if (this.renderer) this.renderer.destroy();
     this.renderer = null;
 
-    this.scene.destroy();
+    if (this.scene) this.scene.destroy();
     this.scene = null;
 
     this.$element.empty();
