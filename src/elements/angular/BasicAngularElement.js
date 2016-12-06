@@ -12,12 +12,36 @@
       DataElementMixIn.call(this);
       this._addHook('onAngularReady');
       this.$scopectrl = null;
+      if (options && options.initialData) this.set('data', options.initialData);
     }
     lib.inherit (BasicAngularElement, WebElement);
     BasicAngularElement.prototype.__cleanUp = function () {
       this.$scopectrl = null;
       DataElementMixIn.prototype.__cleanUp.call(this);
       WebElement.prototype.__cleanUp.call(this);
+    };
+
+    BasicAngularElement.prototype.updateHashField = function (name, value) {
+      var val = {};
+      val[name] = value;
+      this.set('data', lib.extend ({}, this.get('data'), val));
+    };
+
+    BasicAngularElement.prototype.updateArrayElement = function (index, value) {
+      var old = this.get('data'),
+        n = old ? old.slice() : [];
+
+      n[index] = value;
+      this.set('data', n);
+    };
+
+    BasicAngularElement.prototype.getArrayDataCopy = function () {
+      var data = this.get('data');
+      return data ? data.slice() : null;
+    };
+
+    BasicAngularElement.prototype.getHashDataCopy = function () {
+      return lib.extend ({}, this.get('data'));
     };
 
     BasicAngularElement.prototype.set_$scopectrl = function (val) {

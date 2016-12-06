@@ -187,7 +187,7 @@
   };
 
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.data);
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.get('data'));
   };
 
   AngularFormLogic.prototype.firePartialSubmit = function (field) {
@@ -203,6 +203,10 @@
   AngularFormLogic.prototype.set_data = function (data) {
     lib.traverseShallow (this._default_values, setDefaultVals.bind(null, data));
     return BasicAngularElement.prototype.set_data.call(this, data);
+  };
+
+  AngularFormLogic.prototype.get_data = function () {
+    return this.$scopectrl ? this.$scopectrl.get('data') : this.data;
   };
 
   AngularFormLogic.prototype.getModelName = function (name) {

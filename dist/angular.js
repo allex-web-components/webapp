@@ -142,12 +142,36 @@ angular.module('allex_applib', []);
       DataElementMixIn.call(this);
       this._addHook('onAngularReady');
       this.$scopectrl = null;
+      if (options && options.initialData) this.set('data', options.initialData);
     }
     lib.inherit (BasicAngularElement, WebElement);
     BasicAngularElement.prototype.__cleanUp = function () {
       this.$scopectrl = null;
       DataElementMixIn.prototype.__cleanUp.call(this);
       WebElement.prototype.__cleanUp.call(this);
+    };
+
+    BasicAngularElement.prototype.updateHashField = function (name, value) {
+      var val = {};
+      val[name] = value;
+      this.set('data', lib.extend ({}, this.get('data'), val));
+    };
+
+    BasicAngularElement.prototype.updateArrayElement = function (index, value) {
+      var old = this.get('data'),
+        n = old ? old.slice() : [];
+
+      n[index] = value;
+      this.set('data', n);
+    };
+
+    BasicAngularElement.prototype.getArrayDataCopy = function () {
+      var data = this.get('data');
+      return data ? data.slice() : null;
+    };
+
+    BasicAngularElement.prototype.getHashDataCopy = function () {
+      return lib.extend ({}, this.get('data'));
     };
 
     BasicAngularElement.prototype.set_$scopectrl = function (val) {
@@ -464,7 +488,7 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.fireSubmit = function () {
-    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.data);
+    this.submit.fire(this.array_keys ? this.toArray(this.array_keys) : this.get('data'));
   };
 
   AngularFormLogic.prototype.firePartialSubmit = function (field) {
@@ -480,6 +504,10 @@ angular.module('allex_applib', []);
   AngularFormLogic.prototype.set_data = function (data) {
     lib.traverseShallow (this._default_values, setDefaultVals.bind(null, data));
     return BasicAngularElement.prototype.set_data.call(this, data);
+  };
+
+  AngularFormLogic.prototype.get_data = function () {
+    return this.$scopectrl ? this.$scopectrl.get('data') : this.data;
   };
 
   AngularFormLogic.prototype.getModelName = function (name) {
@@ -598,7 +626,6 @@ angular.module('allex_applib', []);
   };
 
   AllexAngularFormLogicController.prototype.onChange = function (name, val){
-    console.log('SAMO DA VIDIM ...', name, val);
     if (lib.isFunction(this._onChange)) this._onChange(this.data, name, val);
   };
 
