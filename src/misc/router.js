@@ -53,36 +53,30 @@
     }
   };
 
-  function Router (container) {
+
+  function RouterMixIn () {
     this.default_page = null;
     this.pagesmap = new lib.Map();
     this.page = null;
-    this.container = container;
-    CLDestroyable.call(this);
   }
-
-  lib.inherit(Router, CLDestroyable);
-
-  Router.prototype.__cleanUp = function () {
-    this.container = null;
+  RouterMixIn.prototype.__cleanUp = function () {
     this.default_page = null;
     this.page = null;
     lib.container.destroyAll (this.pagesmap);
     this.pagesmap.destroy();
     this.pagesmap = null;
-    CLDestroyable.prototype.__cleanUp.call(this);
   };
 
-  Router.prototype.addPage = function (page, allexelement, onActivated, onDeactivated, page_router) {
+  RouterMixIn.prototype.addPage = function (page, allexelement, onActivated, onDeactivated, page_router) {
     this.pagesmap.add(page, new Page (allexelement, onActivated, onDeactivated, page_router));
   };
 
-  Router.prototype._doDeactivate = function (page, item, key) {
+  RouterMixIn.prototype._doDeactivate = function (page, item, key) {
     if (key === page) return;
     if (item) item.deactivate();
   };
 
-  Router.prototype.set_page = function (page) {
+  RouterMixIn.prototype.set_page = function (page) {
     if (this.page === page) return false;
     this.page = page;
 
@@ -102,15 +96,39 @@
     return true;
   };
 
-  Router.prototype.reset = function () {
+  RouterMixIn.prototype.reset = function () {
     this.set('page', this.default_page);
   };
 
-  Router.prototype.clear = function () {
+  RouterMixIn.prototype.clear = function () {
     this.set('page', null);
-    if (this.container) {
-      this.container.set('actual', false);
+    if (this.getContainer()) {
+      this.getContainer().set('actual', false);
     }
+  };
+
+  RouterMixIn.addMethods = function (chld) {
+    lib.inheritMethods(chld, RouterMixIn, 'clear', 'reset', 'set_page', '_doDeactivate', 'addPage'); 
+  };
+
+
+  function Router (container) {
+    RouterMixIn.call(this, container);
+    this.container = container;
+    CLDestroyable.call(this);
+  }
+
+  lib.inherit(Router, CLDestroyable);
+  RouterMixIn.addMethods (Router);
+
+  Router.prototype.__cleanUp = function () {
+    this.container = null;
+    RouterMixIn.prototype.__cleanUp.call(this);
+    CLDestroyable.prototype.__cleanUp.call(this);
+  };
+
+  Router.prototype.getContainer = function () {
+    return this.container;
   };
 
   function getUniversalPageName (name) {
@@ -121,22 +139,12 @@
     this.role_router = new Router();
     this.role = null;
     this.active_router = null;
-    this._role_monitor = null;
-    this._user_state_monitor = null;
-    this.role_datasource = null;
+    this.isonline = false;
   }
 
   lib.inherit (RoleRouter, Router);
   RoleRouter.prototype.destroy = function (){
-    if (this._user_state_monitor){
-      this._user_state_monitor.destroy();
-    }
-    this._user_state_monitor = null;
-
-    if (this._role_monitor) {
-      this._role_monitor.destroy();
-    }
-    this.role_datasource = null;
+    this.isonline = null;
     this.active_router = null;
     this.role = null;
     this.role_router.destroy();
@@ -185,6 +193,10 @@
 
   RoleRouter.prototype.setRole = function (role) {
     this.role = role;
+    if (!this.online) {
+      this._prepareActiveRouter(null);
+      return;
+    }
     this._prepareActiveRouter(role);
     this.role_router.set('page', role ? role : null);
   };
@@ -203,49 +215,14 @@
     }
   };
 
-  RoleRouter.prototype._listenRole = function () {
-    if (this._role_monitor) this._role_monitor.destroy();
-    this._role_monitor = this.role_datasource.attachListener ('data', this.setRole.bind(this));
-  };
-
-  RoleRouter.prototype.setRoleMonitor = function (datasource) {
-    this.role_datasource = datasource;
-  };
-
-  RoleRouter.prototype.setApp = function (app, name){
-    app.environments.listenFor(name, this._onEnv.bind(this));
-  };
-
-  RoleRouter.prototype._onEnv = function (env) {
-    if (!env) {
-      if (this._role_monitor){
-        this._role_monitor.destroy();
-      }
-      this._role_monitor = null;
-
-      if (this._user_state_monitor){
-        this._user_state_monitor.destroy();
-      }
-      this._user_state_monitor = null;
-      this.setRole(null);
-      return;
-    }
-    //TODO: nije iskljuceno da odavde mozes da izvuces i monitor za rolu ...
-    this._user_state_monitor = env.attachListener('state', this._onStatusChanged.bind(this));
-  };
-
   RoleRouter.prototype._onStatusChanged = function (sttus) {
-    if ('established' === sttus){
-      this._listenRole();
-      return;
-    }
-    if (this._role_monitor) this._role_monitor.destroy();
-    this._role_monitor = null;
-    if (this.role !== null) this.setRole(null);
+    this.online = ('established' === sttus);
+    this.setRole ( this.online ? this.role : null);
   };
 
+  module.RouterMixIn = RouterMixIn;
   module.Router = Router;
-  module.RoleRouter = new RoleRouter();
+  module.RoleRouter = RoleRouter;
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent.misc);

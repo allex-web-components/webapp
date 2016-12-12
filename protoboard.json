@@ -11,8 +11,11 @@
       "src/resources/URLGenerator.js",
       "src/mixins/DataElementMixIn.js",
       "src/elements/DataAwareElement.js",
-      "src/elements/Pipeline.js",
-      "src/misc/router.js"
+      "src/preprocessors/Pipeline.js",
+      "src/modifiers/Selector.js",
+      "src/misc/router.js",
+      "src/elements/Selector.js",
+      "src/preprocessors/RoleRouter.js"
     ],
     "howler" : [
       "src/resources/Howler.js"

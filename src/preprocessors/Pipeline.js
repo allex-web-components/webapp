@@ -341,7 +341,7 @@
   };
 
   applib.registerModifier ('Pipeline', PipelineModifier);
-  applib.registerPreprocessor (new PipelineSearcher());
+  applib.registerPreprocessor ('Pipeline', PipelineSearcher);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 

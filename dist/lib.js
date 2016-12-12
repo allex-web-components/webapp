@@ -306,14 +306,19 @@
   WebElement.prototype.getElement = function (path) {
     //e, aj vidi u cemu je ovde fora ... jel .$element ili je $element ili sta je koji moj ... i gledaj samo pocetak sa replace ....
     var ret, elempath;
+
     if (path.indexOf('$element.') === 0){
-      elempath = '#'+path.replace('$element.', '');
-      ret = this.$element.find(elempath);
+      elempath = path.replace('$element.', '');
     }
     if (path.indexOf('.$element.') === 0) {
-      elempath = '#'+path.replace('.$element.', '');
+      elempath = path.replace('.$element.', '');
+    }
+
+    if (elempath) {
       ret = this.$element.find(elempath);
     }
+
+
     if (ret) {
       if (ret.length===0) {
         throw new lib.Error('JQUERY_FIND_FAILED', 'jQuery could not find '+elempath);
@@ -350,6 +355,10 @@
     if (!type) throw new Error('No type given');
     var id = this.id;
     return jQuery('#references #references_'+id+' #references_'+id+'_'+type);
+  };
+
+  WebElement.prototype.raiseEvent = function () {
+    this.$element.trigger.apply(this.$element, arguments);
   };
 
   WebElement.ResourcesSchema = {
@@ -921,10 +930,77 @@
   };
 
   applib.registerModifier ('Pipeline', PipelineModifier);
-  applib.registerPreprocessor (new PipelineSearcher());
+  applib.registerPreprocessor ('Pipeline', PipelineSearcher);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 
+//samo da te vidim
+(function (allex, module, applib, $) {
+  'use strict';
+
+  var lib = allex.lib,
+    BasicModifier = applib.BasicModifier;
+
+  function Selector (options) {
+    BasicModifier.call(this, options);
+  }
+  lib.inherit (Selector, BasicModifier);
+  Selector.prototype.destroy = function () {
+    BasicModifier.prototype.destroy.call(this);
+  };
+
+  Selector.prototype.ALLOWED_ON = function() { return null; };
+
+  Selector.prototype.DEFAULT_CONFIG = function () {
+    return {
+      attributeVal : null,
+      evntValProcessor : null
+    };
+  };
+
+  Selector.prototype.doProcess = function (name, options, links, logic, resources){
+    var selector = this.getConfigVal ('selector');
+    var ret = [{
+      triggers : '.$element.'+selector+'!click',
+      references : '.',
+      handler : this._onClicked.bind(this, this.getConfigVal ('attributeVal'), this.getConfigVal ('evntValProcessor'))
+    }];
+    Array.prototype.push.apply (logic, ret);
+  };
+
+  Selector.prototype._onClicked = function (attributeVal, evntValProcessor, selector, evnt) {
+    selector.raiseEvent ('onSelected', this.getRaiseValue($(evnt.currentTarget), attributeVal, evntValProcessor));
+  };
+
+  Selector.prototype.getRaiseValue = function ($target, attributeVal, evntValProcessor) {
+    if (attributeVal) {
+      return $target.attr(attributeVal);
+    }
+
+    if (evntValProcessor) {
+      return evntValProcessor($target);
+    }
+
+    return $target;
+  };
+
+  applib.registerModifier ('Selector', Selector);
+
+  function RouteController (options) {
+    lib.extend (options || {}, {
+      attributeVal : 'data-route'
+    });
+    Selector.call(this,options);
+  }
+  lib.inherit (RouteController, Selector);
+  RouteController.prototype.__cleanUp = function () {
+    Selector.prototype.__cleanUp.call(this);
+  };
+
+  applib.registerModifier ('RouteController', RouteController);
+
+  module.modifiers.Selector = Selector;
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 //samo da te vidim
 (function (allex, module) {
   'use strict';
@@ -981,36 +1057,30 @@
     }
   };
 
-  function Router (container) {
+
+  function RouterMixIn () {
     this.default_page = null;
     this.pagesmap = new lib.Map();
     this.page = null;
-    this.container = container;
-    CLDestroyable.call(this);
   }
-
-  lib.inherit(Router, CLDestroyable);
-
-  Router.prototype.__cleanUp = function () {
-    this.container = null;
+  RouterMixIn.prototype.__cleanUp = function () {
     this.default_page = null;
     this.page = null;
     lib.container.destroyAll (this.pagesmap);
     this.pagesmap.destroy();
     this.pagesmap = null;
-    CLDestroyable.prototype.__cleanUp.call(this);
   };
 
-  Router.prototype.addPage = function (page, allexelement, onActivated, onDeactivated, page_router) {
+  RouterMixIn.prototype.addPage = function (page, allexelement, onActivated, onDeactivated, page_router) {
     this.pagesmap.add(page, new Page (allexelement, onActivated, onDeactivated, page_router));
   };
 
-  Router.prototype._doDeactivate = function (page, item, key) {
+  RouterMixIn.prototype._doDeactivate = function (page, item, key) {
     if (key === page) return;
     if (item) item.deactivate();
   };
 
-  Router.prototype.set_page = function (page) {
+  RouterMixIn.prototype.set_page = function (page) {
     if (this.page === page) return false;
     this.page = page;
 
@@ -1030,15 +1100,39 @@
     return true;
   };
 
-  Router.prototype.reset = function () {
+  RouterMixIn.prototype.reset = function () {
     this.set('page', this.default_page);
   };
 
-  Router.prototype.clear = function () {
+  RouterMixIn.prototype.clear = function () {
     this.set('page', null);
-    if (this.container) {
-      this.container.set('actual', false);
+    if (this.getContainer()) {
+      this.getContainer().set('actual', false);
     }
+  };
+
+  RouterMixIn.addMethods = function (chld) {
+    lib.inheritMethods(chld, RouterMixIn, 'clear', 'reset', 'set_page', '_doDeactivate', 'addPage'); 
+  };
+
+
+  function Router (container) {
+    RouterMixIn.call(this, container);
+    this.container = container;
+    CLDestroyable.call(this);
+  }
+
+  lib.inherit(Router, CLDestroyable);
+  RouterMixIn.addMethods (Router);
+
+  Router.prototype.__cleanUp = function () {
+    this.container = null;
+    RouterMixIn.prototype.__cleanUp.call(this);
+    CLDestroyable.prototype.__cleanUp.call(this);
+  };
+
+  Router.prototype.getContainer = function () {
+    return this.container;
   };
 
   function getUniversalPageName (name) {
@@ -1049,22 +1143,12 @@
     this.role_router = new Router();
     this.role = null;
     this.active_router = null;
-    this._role_monitor = null;
-    this._user_state_monitor = null;
-    this.role_datasource = null;
+    this.isonline = false;
   }
 
   lib.inherit (RoleRouter, Router);
   RoleRouter.prototype.destroy = function (){
-    if (this._user_state_monitor){
-      this._user_state_monitor.destroy();
-    }
-    this._user_state_monitor = null;
-
-    if (this._role_monitor) {
-      this._role_monitor.destroy();
-    }
-    this.role_datasource = null;
+    this.isonline = null;
     this.active_router = null;
     this.role = null;
     this.role_router.destroy();
@@ -1113,6 +1197,10 @@
 
   RoleRouter.prototype.setRole = function (role) {
     this.role = role;
+    if (!this.online) {
+      this._prepareActiveRouter(null);
+      return;
+    }
     this._prepareActiveRouter(role);
     this.role_router.set('page', role ? role : null);
   };
@@ -1131,49 +1219,148 @@
     }
   };
 
-  RoleRouter.prototype._listenRole = function () {
-    if (this._role_monitor) this._role_monitor.destroy();
-    this._role_monitor = this.role_datasource.attachListener ('data', this.setRole.bind(this));
-  };
-
-  RoleRouter.prototype.setRoleMonitor = function (datasource) {
-    this.role_datasource = datasource;
-  };
-
-  RoleRouter.prototype.setApp = function (app, name){
-    app.environments.listenFor(name, this._onEnv.bind(this));
-  };
-
-  RoleRouter.prototype._onEnv = function (env) {
-    if (!env) {
-      if (this._role_monitor){
-        this._role_monitor.destroy();
-      }
-      this._role_monitor = null;
-
-      if (this._user_state_monitor){
-        this._user_state_monitor.destroy();
-      }
-      this._user_state_monitor = null;
-      this.setRole(null);
-      return;
-    }
-    //TODO: nije iskljuceno da odavde mozes da izvuces i monitor za rolu ...
-    this._user_state_monitor = env.attachListener('state', this._onStatusChanged.bind(this));
-  };
-
   RoleRouter.prototype._onStatusChanged = function (sttus) {
-    if ('established' === sttus){
-      this._listenRole();
-      return;
-    }
-    if (this._role_monitor) this._role_monitor.destroy();
-    this._role_monitor = null;
-    if (this.role !== null) this.setRole(null);
+    this.online = ('established' === sttus);
+    this.setRole ( this.online ? this.role : null);
   };
 
+  module.RouterMixIn = RouterMixIn;
   module.Router = Router;
-  module.RoleRouter = new RoleRouter();
+  module.RoleRouter = RoleRouter;
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent.misc);
+//samo da te vidim
+(function (allex, module, applib, $) {
+  'use strict';
+  var lib = allex.lib,
+    BasicElement = applib.BasicElement,
+    BasicModifier = applib.BasicModifier,
+    BasicProcessor = applib.BasicProcessor,
+    cntr = 0,
+    misc = applib.misc,
+    q = lib.q;
+
+  function RoleRouterElement (id, options) {
+    BasicElement.call(this, id, options);
+    this.role_router = new module.misc.RoleRouter();
+  }
+  lib.inherit (RoleRouterElement, BasicElement);
+  RoleRouterElement.prototype.__cleanUp = function () {
+    this.role_router.destroy ();
+    this.role_router = null;
+    BasicElement.prototype.__cleanUp.call(this);
+  };
+
+  RoleRouterElement.prototype.gotoPage = function (page) {
+    this.role_router.setPageInRole (page);
+  };
+
+  RoleRouterElement.prototype.gotoUniversalRolePage = function () {
+    this.role_router.gotoUniversalRolePage.apply (this.role_router, arguments);
+  };
+
+  RoleRouterElement.prototype.resetToRole = function () {
+    this.role_router.resetToRole.apply (this.role_router, arguments);
+  };
+
+
+  applib.registerElementType ('RoleRouterElement', RoleRouterElement);
+
+  function onSttusChanged (router, sttus) {
+    router.role_router._onStatusChanged (sttus);
+  }
+
+  function onRoleChanged (router, role) {
+    router.role_router.setRole (role);
+  }
+
+  function prepareRole (role, data, pageslist, router, container) {
+    var len = pageslist.length,
+      pages = Array.prototype.slice.call (arguments, 5, 5+len),
+      rr = new module.misc.Router(container);
+
+    for (var i in pageslist) {
+      rr.addPage (data.pages[pageslist[i]], pages[i]);
+    }
+    rr.default_page = data.default_page;
+    router.role_router.addRolePage(role, container, null, null, rr);
+  }
+
+  function RoleRouter () {
+    BasicProcessor.call(this);
+  }
+  lib.inherit (RoleRouter, BasicProcessor);
+  RoleRouter.prototype.destroy = function () {
+    BasicProcessor.prototype.destroy.call(this);
+  };
+
+  RoleRouter.prototype.processRoleRouter = function (rr_name, rr_data, desc) {
+    var name = rr_name+'_router';
+    desc.elements.push ({
+      name : name,
+      type : 'RoleRouterElement'
+    });
+
+    desc.logic.push ({
+      triggers : rr_data.sttusSource,
+      references : 'element.'+name,
+      handler : onSttusChanged
+    },{
+      triggers : rr_data.roleSource,
+      references : 'element.'+name,
+      handler : onRoleChanged
+    });
+
+    if (rr_data.roles) lib.traverseShallow (rr_data.roles, this.processRole.bind(this, desc.logic, 'element.'+name));
+    if (rr_data.anyRole) lib.traverseShallow (rr_data.anyRole, this.processAnyRole.bind(this, desc.logic, 'element.'+name));
+  };
+
+  RoleRouter.prototype.processAnyRole = function (logic, element_name, data, name) {
+    if (!data) return;
+
+    var list = Object.keys (data.pages);
+
+    logic.push({
+      triggers : '.!ready',
+      references : ([element_name, data.container].concat(list)).join (','),
+      handler : suiteUpAnyRole.bind(null, data, list, name)
+    });
+  };
+
+  function suiteUpAnyRole (data, list, name, router, container) {
+    var refs = Array.prototype.slice.call (arguments, 5, 5+list.length);
+    var rr = new module.misc.Router(container);
+
+    for (var i = 0; i < list.length; i++) {
+      rr.addPage(data.pages[list[i]], refs[i]);
+    }
+
+    rr.default_page = data.default_page;
+    router.role_router.addUniversalRolePage (name, container, null, null, rr);
+  }
+
+  RoleRouter.prototype.processRole = function (logic, element_name, data, role) {
+    if (!data.pages) {
+      console.warn ('No page for role ',role);
+      return;
+    }
+    var refs = [element_name, data.container], pageslist = Object.keys (data.pages);
+    Array.prototype.push.apply (refs, pageslist);
+
+    logic.push ({
+      triggers : '.!ready',
+      references : refs.join(','),
+      handler : prepareRole.bind(null, role, data, pageslist)
+    });
+  };
+
+  RoleRouter.prototype.process = function (desc) {
+    for (var rr_name in this.config) {
+      this.processRoleRouter(rr_name, this.config[rr_name], desc);
+    }
+  };
+
+  applib.registerPreprocessor ('RoleRouter', RoleRouter);
+
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);

@@ -68,7 +68,7 @@ angular.module ('allex_applib', []);
     }
   }
 
-  registerPreprocessor (new AngularPreProcessor());
+  registerPreprocessor ('AngularPreProcessor', AngularPreProcessor);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib,ALLEX.WEB_COMPONENTS.allex_web_webappcomponent);
 
 //samo da te vidim
@@ -193,7 +193,7 @@ angular.module('allex_applib', []);
     };
 
     BasicAngularElement.prototype._setRaise = function () {
-      this.$scopectrl.set('raise', this._doTrigger.bind(this));
+      this.$scopectrl.set('raise', this.raiseEvent.bind(this));
       this.$scopectrl.set('_getResource', this.getResource.bind(this));
     };
 
@@ -203,10 +203,6 @@ angular.module('allex_applib', []);
         this.executeOnScopeIfReady ('set', ['data', this.data]);
       }
       return ret;
-    };
-
-    BasicAngularElement.prototype._doTrigger = function () {
-      this.$element.trigger.apply(this.$element, arguments);
     };
 
     BasicAngularElement.prototype.getMeAsElement = function () {
