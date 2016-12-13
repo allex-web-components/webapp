@@ -20,7 +20,10 @@ angular.module ('allex_applib', []);
   };
 
   AngularPreProcessor.prototype.process = function (desc) {
-    if (!desc || !desc.resources) return;
+    if (!desc) throw new Error('No APP descriptor');
+    if (!desc.resources) {
+      desc.resources = [];
+    }
     var resources = desc.resources, 
       angular_resource = null, 
       cnt = 0,
@@ -35,16 +38,15 @@ angular.module ('allex_applib', []);
       }
     }
 
-    if (!angular_resource) {
-      angular_resource = {
-        type : 'AngularBootstrapper',
-        name : 'AngularBootstrapper',
-        options : {
-          angular_dependencies : []
-        }
-      };
-      resources.push (angular_resource);
-    }
+    //since we got here, angular is needed ....
+    angular_resource = {
+      type : 'AngularBootstrapper',
+      name : 'AngularBootstrapper',
+      options : {
+        angular_dependencies : []
+      }
+    };
+    resources.push (angular_resource);
 
     if (!angular_resource.options.angular_dependencies) angular_resource.options.angular_dependencies = [];
 

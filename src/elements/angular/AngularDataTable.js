@@ -22,11 +22,11 @@
   };
 
   function checkIfEditable (item) {
-    checkIfPropIsTrue ('enableCellEdit', item);
+    return checkIfPropIsTrue ('enableCellEdit', item);
   }
 
   function checkIfResizable (item) {
-    checkIfPropIsTrue ('enableColumnResizing', item);
+    return checkIfPropIsTrue ('enableColumnResizing', item);
   }
 
   function checkIfPropIsTrue (prop, item) {

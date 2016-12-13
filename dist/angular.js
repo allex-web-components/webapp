@@ -20,7 +20,10 @@ angular.module ('allex_applib', []);
   };
 
   AngularPreProcessor.prototype.process = function (desc) {
-    if (!desc || !desc.resources) return;
+    if (!desc) throw new Error('No APP descriptor');
+    if (!desc.resources) {
+      desc.resources = [];
+    }
     var resources = desc.resources, 
       angular_resource = null, 
       cnt = 0,
@@ -35,16 +38,15 @@ angular.module ('allex_applib', []);
       }
     }
 
-    if (!angular_resource) {
-      angular_resource = {
-        type : 'AngularBootstrapper',
-        name : 'AngularBootstrapper',
-        options : {
-          angular_dependencies : []
-        }
-      };
-      resources.push (angular_resource);
-    }
+    //since we got here, angular is needed ....
+    angular_resource = {
+      type : 'AngularBootstrapper',
+      name : 'AngularBootstrapper',
+      options : {
+        angular_dependencies : []
+      }
+    };
+    resources.push (angular_resource);
 
     if (!angular_resource.options.angular_dependencies) angular_resource.options.angular_dependencies = [];
 
@@ -694,15 +696,16 @@ angular.module('allex_applib', []);
     links.push ({
       source : path+'.$element!click',
       target : '.>fireSubmit'
+    },
+    {
+      source : '.:valid',
+      target : '$element.#'+submitid+':attr.disabled',
+      filter : this._decideDisabled.bind(this)
     });
 
     switch (this.getConfigVal('actual')){
       case 'always' : {
         links.push ({
-          source : '.:valid',
-          target : '$element'+path+':attr.disabled',
-          filter : this._decideDisabled.bind(this)
-        }, {
           source : '.:actual',
           target : path+':actual',
         });
@@ -896,11 +899,11 @@ angular.module('allex_applib', []);
   };
 
   function checkIfEditable (item) {
-    checkIfPropIsTrue ('enableCellEdit', item);
+    return checkIfPropIsTrue ('enableCellEdit', item);
   }
 
   function checkIfResizable (item) {
-    checkIfPropIsTrue ('enableColumnResizing', item);
+    return checkIfPropIsTrue ('enableColumnResizing', item);
   }
 
   function checkIfPropIsTrue (prop, item) {

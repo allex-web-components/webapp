@@ -397,15 +397,16 @@
     links.push ({
       source : path+'.$element!click',
       target : '.>fireSubmit'
+    },
+    {
+      source : '.:valid',
+      target : '$element.#'+submitid+':attr.disabled',
+      filter : this._decideDisabled.bind(this)
     });
 
     switch (this.getConfigVal('actual')){
       case 'always' : {
         links.push ({
-          source : '.:valid',
-          target : '$element'+path+':attr.disabled',
-          filter : this._decideDisabled.bind(this)
-        }, {
           source : '.:actual',
           target : path+':actual',
         });
