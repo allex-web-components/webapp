@@ -32,7 +32,9 @@
   };
 
   Selector.prototype._onClicked = function (attributeVal, evntValProcessor, selector, evnt) {
-    selector.raiseEvent ('onSelected', this.getRaiseValue($(evnt.currentTarget), attributeVal, evntValProcessor));
+    var raiseValue =  this.getRaiseValue($(evnt.currentTarget), attributeVal, evntValProcessor);
+    if ('undefined' === typeof(raiseValue)) return;
+    selector.raiseEvent ('onSelected',raiseValue);
   };
 
   Selector.prototype.getRaiseValue = function ($target, attributeVal, evntValProcessor) {

@@ -969,7 +969,9 @@
   };
 
   Selector.prototype._onClicked = function (attributeVal, evntValProcessor, selector, evnt) {
-    selector.raiseEvent ('onSelected', this.getRaiseValue($(evnt.currentTarget), attributeVal, evntValProcessor));
+    var raiseValue =  this.getRaiseValue($(evnt.currentTarget), attributeVal, evntValProcessor);
+    if ('undefined' === typeof(raiseValue)) return;
+    selector.raiseEvent ('onSelected',raiseValue);
   };
 
   Selector.prototype.getRaiseValue = function ($target, attributeVal, evntValProcessor) {
@@ -1244,9 +1246,13 @@
   function RoleRouterElement (id, options) {
     BasicElement.call(this, id, options);
     this.role_router = new module.misc.RoleRouter();
+    this.path_prefix = null;
+    this.path = null;
   }
   lib.inherit (RoleRouterElement, BasicElement);
   RoleRouterElement.prototype.__cleanUp = function () {
+    this.path_prefix = null;
+    this.path = null;
     this.role_router.destroy ();
     this.role_router = null;
     BasicElement.prototype.__cleanUp.call(this);
@@ -1254,25 +1260,41 @@
 
   RoleRouterElement.prototype.gotoPage = function (page) {
     this.role_router.setPageInRole (page);
+    this.set('path', page);
   };
 
-  RoleRouterElement.prototype.gotoUniversalRolePage = function () {
+  RoleRouterElement.prototype.gotoUniversalRolePage = function (page) {
     this.role_router.gotoUniversalRolePage.apply (this.role_router, arguments);
+    this.set('path_prefix', page);
+    this.set('path', this.role_router.active_router.default_page);
   };
 
   RoleRouterElement.prototype.resetToRole = function () {
     this.role_router.resetToRole.apply (this.role_router, arguments);
+    this.set('path_prefix', null);
+    this.set('path', this.role_router.active_router.default_page);
   };
 
+  RoleRouterElement.prototype.set_path = function (path) {
+    this.path = path;
+  };
+
+  RoleRouterElement.prototype._checkInitialPath = function () {
+    if (this.role_router.role && this.role_router.online) {
+      this.set('path', this.role_router.active_router.default_page);
+    }
+  };
 
   applib.registerElementType ('RoleRouterElement', RoleRouterElement);
 
   function onSttusChanged (router, sttus) {
     router.role_router._onStatusChanged (sttus);
+    router._checkInitialPath();
   }
 
   function onRoleChanged (router, role) {
     router.role_router.setRole (role);
+    router._checkInitialPath();
   }
 
   function prepareRole (role, data, pageslist, router, container) {
