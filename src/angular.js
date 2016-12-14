@@ -38,15 +38,16 @@ angular.module ('allex_applib', []);
       }
     }
 
-    //since we got here, angular is needed ....
-    angular_resource = {
-      type : 'AngularBootstrapper',
-      name : 'AngularBootstrapper',
-      options : {
-        angular_dependencies : []
-      }
-    };
-    resources.push (angular_resource);
+    if (!angular_resource) {
+      angular_resource = {
+        type : 'AngularBootstrapper',
+        name : 'AngularBootstrapper',
+        options : {
+          angular_dependencies : []
+        }
+      };
+      resources.push (angular_resource);
+    }
 
     if (!angular_resource.options.angular_dependencies) angular_resource.options.angular_dependencies = [];
 
