@@ -83,6 +83,8 @@
   };
 
   RoleRouter.prototype.processRoleRouter = function (rr_name, rr_data, desc) {
+    if (!rr_data.sttusSource) throw new Error("Missing sttusSource");
+    if (!rr_data.roleSource) throw new Error('Missing roleSource');
     var name = rr_name+'_router';
     desc.elements.push ({
       name : name,
