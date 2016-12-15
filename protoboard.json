@@ -15,7 +15,8 @@
       "src/modifiers/Selector.js",
       "src/misc/router.js",
       "src/elements/Selector.js",
-      "src/preprocessors/RoleRouter.js"
+      "src/preprocessors/RoleRouter.js",
+      "src/preprocessors/TabViews.js"
     ],
     "howler" : [
       "src/resources/Howler.js"
