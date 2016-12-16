@@ -988,6 +988,8 @@ angular.module('allex_applib', []);
 
 
     _ctrl.set('_cbmap', _cbmap);
+    this.config.grid.enableHorizontalScrollbar = this.config.grid.enableHorizontalScrollbar === false ? _ctrl.uiGridConstants.scrollbars.NEVER : _ctrl.uiGridConstants.scrollbars.ALWAYS;
+    this.config.grid.enableVerticalScrollbar = this.config.grid.enableVerticalScrollbar === false ? _ctrl.uiGridConstants.scrollbars.NEVER : _ctrl.uiGridConstants.scrollbars.ALWAYS;
     _ctrl.set('gridOptions', this.config.grid);
   };
 
@@ -1097,9 +1099,10 @@ angular.module('allex_applib', []);
   module.ANGULAR_REQUIREMENTS.add ('AngularDataTable', ['ui.grid','ui.grid.edit', 'ui.grid.autoResize', 'ui.grid.resizeColumns']);
 
   //This is angular part of code ... //and what about this ... raise ....
-  function AllexAngularDataTableController ($scope, $parse) {
+  function AllexAngularDataTableController ($scope, $parse, uiGridConstants) {
     AngularDataAwareController.call(this, $scope);
     CBMapable.call(this);
+    this.uiGridConstants = uiGridConstants;
     this.data = [];
     this.gridOptions = null;
     this.api = null;
@@ -1113,6 +1116,7 @@ angular.module('allex_applib', []);
 
 
   AllexAngularDataTableController.prototype.__cleanUp = function () {
+    this.uiGridConstants = null;
     this._getActualData = null;
     this._parse = null;
     this.rowCountChanged.destroy();
@@ -1197,8 +1201,8 @@ angular.module('allex_applib', []);
     return lib.isArray(d) ? d.length : null;
   };
 
-  angular_module.controller('allexAngularDataTableController', ['$scope', '$parse', function ($scope, $parse) {
-    new AllexAngularDataTableController($scope, $parse);
+  angular_module.controller('allexAngularDataTableController', ['$scope', '$parse', 'uiGridConstants', function ($scope, $parse, uiGridConstants) {
+    new AllexAngularDataTableController($scope, $parse, uiGridConstants);
   }]);
 
   angular_module.directive ('allexAngularDataTable', [function () {

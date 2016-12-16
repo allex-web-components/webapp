@@ -536,10 +536,12 @@
 
     function DataElementMixIn () {
       this.data = null;
+      this.busy = false;
     }
 
     DataElementMixIn.prototype.__cleanUp = function () {
       this.data = null;
+      this.busy = null;
     };
 
     DataElementMixIn.prototype.set_data = function (data) {
@@ -555,8 +557,13 @@
       return lib.isUndef(ret) || ret === true;
     };
 
+    DataElementMixIn.prototype.set_busy = function (val) {
+      this.busy = val;
+      console.log(this.get('id'), 'reported busy', val);
+    };
+
     DataElementMixIn.addMethods = function (chld) {
-      lib.inheritMethods (chld, DataElementMixIn, 'set_data', 'hasDataChanged');
+      lib.inheritMethods (chld, DataElementMixIn, 'set_data', 'hasDataChanged', 'set_busy');
     };
 
     module.mixins.DataElementMixIn = DataElementMixIn;
@@ -1318,6 +1325,8 @@
   };
 
   RoleRouter.prototype.processRoleRouter = function (rr_name, rr_data, desc) {
+    if (!rr_data.sttusSource) throw new Error("Missing sttusSource");
+    if (!rr_data.roleSource) throw new Error('Missing roleSource');
     var name = rr_name+'_router';
     desc.elements.push ({
       name : name,
