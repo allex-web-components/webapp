@@ -757,6 +757,10 @@ angular.module('allex_applib', []);
   SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
     var form = this.getConfigVal('form'),
       cbs = this.getConfigVal('cbs');
+     
+
+    if (!form) throw new Error ('No form in SubmissionModifier');
+    if (!cbs) throw new Error ('No cbs in SubmissionModifier');
 
     logic.push ({
         triggers : form+'!submit',
@@ -988,6 +992,7 @@ angular.module('allex_applib', []);
 
 
     _ctrl.set('_cbmap', _cbmap);
+    //patch realative stupid approach ....
     this.config.grid.enableHorizontalScrollbar = this.config.grid.enableHorizontalScrollbar === false ? _ctrl.uiGridConstants.scrollbars.NEVER : _ctrl.uiGridConstants.scrollbars.ALWAYS;
     this.config.grid.enableVerticalScrollbar = this.config.grid.enableVerticalScrollbar === false ? _ctrl.uiGridConstants.scrollbars.NEVER : _ctrl.uiGridConstants.scrollbars.ALWAYS;
     _ctrl.set('gridOptions', this.config.grid);

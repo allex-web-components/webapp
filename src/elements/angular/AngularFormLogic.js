@@ -457,6 +457,10 @@
   SubmissionModifier.prototype.doProcess = function (name, options, links, logic, resources) {
     var form = this.getConfigVal('form'),
       cbs = this.getConfigVal('cbs');
+     
+
+    if (!form) throw new Error ('No form in SubmissionModifier');
+    if (!cbs) throw new Error ('No cbs in SubmissionModifier');
 
     logic.push ({
         triggers : form+'!submit',
