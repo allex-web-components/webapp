@@ -33,7 +33,8 @@
       "src/elements/angular/AngularFormLogic.js",
       "src/elements/angular/AngularDataTable.js",
       "src/elements/angular/AngularNotification.js",
-      "src/resources/AngularBootstrapper.js"
+      "src/resources/AngularBootstrapper.js",
+      "src/preprocessors/Notificator.js"
     ],
     "apploader" : [
       "src/apploader.js"
