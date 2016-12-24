@@ -193,6 +193,8 @@
   function WebElement (id, options)  {
     BasicElement.call(this, id, options);
     this.$element = null;
+    this._addHook ('onPreShow');
+    this._addHook ('onPreHide');
     this._addHook ('onShown');
     this._addHook ('onHidden');
   }
@@ -208,6 +210,8 @@
     this.$element = $('#'+this.get('id'));
     if (!this.$element || !this.$element.length) throw new Error('Unable to find DOM element '+this.get('id'));
     this.fireInitializationDone();
+    this.attachHook ('onPreShow', this.getConfigVal('onPreShow'));
+    this.attachHook ('onPreHide', this.getConfigVal('onPreHide'));
     this.attachHook ('onShown', this.getConfigVal('onShown'));
     this.attachHook ('onHidden', this.getConfigVal('onHidden'));
     this.set_actual(!!this.get('actual'));
@@ -256,6 +260,7 @@
 
   WebElement.prototype.show = function () {
     if (!this.$element) return;
+    this.fireHook ('onPreShow', [this]);
     var visible_class = this.getConfigVal('visible_class'),
       show_jq_function = this.getConfigVal('show_jq_function');
 
@@ -275,11 +280,12 @@
     }else{
       this.$element.show();
     }
-    this.fireHook ('onShown');
+    this.fireHook ('onShown', [this]);
   };
 
   WebElement.prototype.hide = function () {
     if (!this.$element) return;
+    this.fireHook ('onPreHide', [this]);
      var visible_class = this.getConfigVal('visible_class'),
       hide_jq_function = this.getConfigVal('hide_jq_function');
 
