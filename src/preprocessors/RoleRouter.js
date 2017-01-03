@@ -52,13 +52,14 @@
 
   applib.registerElementType ('RoleRouterElement', RoleRouterElement);
 
-  function onSttusChanged (router, sttus) {
+  function validateRoleChange (router, role, sttus) {
     router.role_router._onStatusChanged (sttus);
-    router._checkInitialPath();
-  }
 
-  function onRoleChanged (router, role) {
-    router.role_router.setRole (role);
+    if ('established' === sttus) {
+      router.role_router.setRole(role);
+    }else{
+      router.role_router.setRole(null);
+    }
     router._checkInitialPath();
   }
 
@@ -92,13 +93,9 @@
     });
 
     desc.logic.push ({
-      triggers : rr_data.sttusSource,
+      triggers : rr_data.roleSource+','+rr_data.sttusSource,
       references : 'element.'+name,
-      handler : onSttusChanged
-    },{
-      triggers : rr_data.roleSource,
-      references : 'element.'+name,
-      handler : onRoleChanged
+      handler : validateRoleChange
     });
 
     if (rr_data.roles) lib.traverseShallow (rr_data.roles, this.processRole.bind(this, desc.logic, 'element.'+name));
