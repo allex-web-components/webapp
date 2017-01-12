@@ -206,7 +206,7 @@
   };
 
   AngularDataTable.prototype.getColumnDef = function (name) {
-    if (this.isScopeReady()){
+    if (this.isScopeReady() && this.getApi().grid.columns.length){
       var column = this.getApi().grid.getColumn (name);
       return column ? column.colDef : null;
     }
