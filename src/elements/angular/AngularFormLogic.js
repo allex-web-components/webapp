@@ -217,6 +217,17 @@
     return model_name;
   };
 
+  AngularFormLogic.prototype.revalidate = function () {
+    if (!this.$scopectrl) return;
+    var form = this.$scopectrl.scope[this.id];
+    if (!form) return;
+
+    for (var i in this.validfields) {
+      if (!form[i]) continue;
+      form[i].$validate();
+    }
+  };
+
   AngularFormLogic.prototype._onScope = function (ctrl) {
     this._valid_l = ctrl.attachListener('valid', this.set.bind(this, 'valid'));
     ctrl.set('validation', this.getConfigVal('validation'));
@@ -291,6 +302,13 @@
 
   AngularFormLogic.prototype.enableInput = function (fieldname) {
     this.setInputEnabled(fieldname, true);
+  };
+
+  AngularFormLogic.prototype.isFormValid = function () {
+    for (var i in this.validfields) {
+      if (!this.isFieldValid(i)) return false;
+    }
+    return true;
   };
 
 
@@ -464,7 +482,7 @@
 
     logic.push ({
         triggers : form+'!submit',
-        references : cbs.map (createSubmissionTriggers).join (','),
+        references : ([form].concat(cbs.map (createSubmissionTriggers))).join (','),
         handler : this._onSubmit.bind(this, cbs)
     });
 
@@ -484,15 +502,17 @@
     }
   };
 
-  SubmissionModifier.prototype._onSubmit = function (cbs) {
+  SubmissionModifier.prototype._onSubmit = function (cbs, form) {
+    //TODO: ovde moras nekako da handlujes throw koji je podagao neki od filtera ....
     var len = cbs.length,
-      frefs = Array.prototype.slice.call (arguments, 1, cbs.length+1),
-      data = arguments[1+cbs.length];
+      offset = 2,
+      frefs = Array.prototype.slice.call (arguments, offset, cbs.length+offset),
+      data = arguments[offset+cbs.length];
 
 
     for (var i = 0; i < len; i++) {
       if (cbs[i].conditional && !cbs[i].conditional(data)) continue;
-      frefs[i](lib.isFunction(cbs[i].filter) ?  cbs[i].filter(data) : [data]);
+      frefs[i](lib.isFunction(cbs[i].filter) ?  cbs[i].filter(data, form) : [data]);
     }
   };
 

@@ -48,7 +48,7 @@
     this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
 
     var $container = $('<div class="table_container" ng-show="'+dataString+'.length"></div>');
-    var $noDataContainer = $('<div class="no_data_container" ng-show = "'+dataString+ ' && !'+dataString+'.length"></div>');
+    var $noDataContainer = $('<div class="no_data_container" ng-show = "!'+dataString+'.length"></div>');
 
     $container.attr('ui-grid', '_ctrl.gridOptions');
     $container.attr('ui-grid-auto-resize', '');
@@ -122,6 +122,10 @@
 
     this.executeOnScopeIfReady ('set', ['data', data]);
     this.executeOnScopeIfReady ('api.core.refresh');
+  };
+
+  AngularDataTable.prototype.getCleanData = function () {
+    angular.toJson(this.get('data'));
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {

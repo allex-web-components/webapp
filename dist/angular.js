@@ -517,6 +517,17 @@ angular.module('allex_applib', []);
     return model_name;
   };
 
+  AngularFormLogic.prototype.revalidate = function () {
+    if (!this.$scopectrl) return;
+    var form = this.$scopectrl.scope[this.id];
+    if (!form) return;
+
+    for (var i in this.validfields) {
+      if (!form[i]) continue;
+      form[i].$validate();
+    }
+  };
+
   AngularFormLogic.prototype._onScope = function (ctrl) {
     this._valid_l = ctrl.attachListener('valid', this.set.bind(this, 'valid'));
     ctrl.set('validation', this.getConfigVal('validation'));
@@ -591,6 +602,13 @@ angular.module('allex_applib', []);
 
   AngularFormLogic.prototype.enableInput = function (fieldname) {
     this.setInputEnabled(fieldname, true);
+  };
+
+  AngularFormLogic.prototype.isFormValid = function () {
+    for (var i in this.validfields) {
+      if (!this.isFieldValid(i)) return false;
+    }
+    return true;
   };
 
 
@@ -764,7 +782,7 @@ angular.module('allex_applib', []);
 
     logic.push ({
         triggers : form+'!submit',
-        references : cbs.map (createSubmissionTriggers).join (','),
+        references : ([form].concat(cbs.map (createSubmissionTriggers))).join (','),
         handler : this._onSubmit.bind(this, cbs)
     });
 
@@ -784,15 +802,17 @@ angular.module('allex_applib', []);
     }
   };
 
-  SubmissionModifier.prototype._onSubmit = function (cbs) {
+  SubmissionModifier.prototype._onSubmit = function (cbs, form) {
+    //TODO: ovde moras nekako da handlujes throw koji je podagao neki od filtera ....
     var len = cbs.length,
-      frefs = Array.prototype.slice.call (arguments, 1, cbs.length+1),
-      data = arguments[1+cbs.length];
+      offset = 2,
+      frefs = Array.prototype.slice.call (arguments, offset, cbs.length+offset),
+      data = arguments[offset+cbs.length];
 
 
     for (var i = 0; i < len; i++) {
       if (cbs[i].conditional && !cbs[i].conditional(data)) continue;
-      frefs[i](lib.isFunction(cbs[i].filter) ?  cbs[i].filter(data) : [data]);
+      frefs[i](lib.isFunction(cbs[i].filter) ?  cbs[i].filter(data, form) : [data]);
     }
   };
 
@@ -930,7 +950,7 @@ angular.module('allex_applib', []);
     this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
 
     var $container = $('<div class="table_container" ng-show="'+dataString+'.length"></div>');
-    var $noDataContainer = $('<div class="no_data_container" ng-show = "'+dataString+ ' && !'+dataString+'.length"></div>');
+    var $noDataContainer = $('<div class="no_data_container" ng-show = "!'+dataString+'.length"></div>');
 
     $container.attr('ui-grid', '_ctrl.gridOptions');
     $container.attr('ui-grid-auto-resize', '');
@@ -1004,6 +1024,10 @@ angular.module('allex_applib', []);
 
     this.executeOnScopeIfReady ('set', ['data', data]);
     this.executeOnScopeIfReady ('api.core.refresh');
+  };
+
+  AngularDataTable.prototype.getCleanData = function () {
+    angular.toJson(this.get('data'));
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {
