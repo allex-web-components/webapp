@@ -11,6 +11,7 @@
   function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
     this.afterEdit = new lib.HookCollection();
+    this.config.grid = lib.extend({}, AngularDataTable.DEFAULT_GRID_CONFIG, this.config.grid);
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
   }
   lib.inherit(AngularDataTable, BasicAngularElement);
@@ -125,7 +126,7 @@
   };
 
   AngularDataTable.prototype.getCleanData = function () {
-    angular.toJson(this.get('data'));
+    angular.copy(this.getTableData());
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {
@@ -135,7 +136,7 @@
       ///TODO: uzmi iz grid options columnDefs i popuni row sa null ...
     }
 
-    var f = this.getConfigVal('config.fAppendNewRow');
+    var f = this.getConfigVal('appendNewRow');
     return f ? f(this, current_length, row) : row;
   };
 
@@ -221,6 +222,37 @@
     this.executeOnScopeIfReady ('api.grid.refresh');
   };
 
+  function extractEntity (item) {
+    return item.entity;
+  }
+
+  AngularDataTable.prototype.getTableData = function () {
+    return this.executeOnScopeIfReady('getActualData');
+  };
+
+  AngularDataTable.prototype.getRowIndexUponEntity = function (entity_data) {
+    var rows = this.getApi().grid.rows;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].entity.$$hashKey === entity_data.$$hashKey) return i;
+    }
+    return -1;
+  };
+
+  AngularDataTable.prototype.removeRow = function (entity_data) {
+    var data = this.getTableData(),
+      index = this.getRowIndexUponEntity (entity_data);
+    if (index < 0) return;
+
+    data.splice(index, 1);
+    this.refreshGrid();
+  };
+
+  AngularDataTable.isSpecialColumnName = function (key) {
+    return '-' === key;
+  };
+
+  AngularDataTable.DEFAULT_GRID_CONFIG = null;
+
   module.elements.AngularDataTable = AngularDataTable;
   applib.registerElementType('AngularDataTable', AngularDataTable);
   module.ANGULAR_REQUIREMENTS.add ('AngularDataTable', ['ui.grid','ui.grid.edit', 'ui.grid.autoResize', 'ui.grid.resizeColumns']);
@@ -234,8 +266,6 @@
     this.gridOptions = null;
     this.api = null;
 
-    this._parse = $parse;
-    this._getActualData = null;
     this._listenToEditEvents = false;
   }
   lib.inherit (AllexAngularDataTableController, AngularDataAwareController);
@@ -244,8 +274,6 @@
 
   AllexAngularDataTableController.prototype.__cleanUp = function () {
     this.uiGridConstants = null;
-    this._getActualData = null;
-    this._parse = null;
     this.rowCountChanged.destroy();
     this.rowCountChanged = null;
 
@@ -271,11 +299,6 @@
     }
 
     this.gridOptions.onRegisterApi = this.set.bind(this, 'api');
-    if (lib.isString(this.gridOptions.data)) {
-      this._getActualData = this._parse (this.gridOptions.data).bind(null, this.scope);
-    }else{
-      this._getActualData = doReturn.bind(null, this.gridOptions.data);
-    }
   };
 
   AllexAngularDataTableController.prototype.set_api = function (api) {
@@ -300,9 +323,8 @@
   function doReturn (what) { return what; }
 
   AllexAngularDataTableController.prototype.set_row_count = function (val) {
-    if (!this._getActualData) return false; ///TODO ...
 
-    var rows = this._getActualData();
+    var rows = this.getActualData();
     if (!lib.isArray(rows)) return false; ///TODO ...
 
     var rc = rows.length,
@@ -315,17 +337,18 @@
     }else{
       while (rows.length < val) {
         new_row = this.call_cb('appendNewRow', [rows.length]);
-        //console.log('will append new row ...', new_row);
         rows.push (new_row);
       }
     }
     return true;
   };
 
+  AllexAngularDataTableController.prototype.getActualData = function (){
+    return (lib.isString(this.gridOptions.data)) ? this.scope.$eval(this.gridOptions.data) : this.gridOptions.data;
+  };
+
   AllexAngularDataTableController.prototype.get_row_count = function () {
-    if (!this._getActualData) return null;
-    var d = this._getActualData();
-    return lib.isArray(d) ? d.length : null;
+    return this.getActualData().length;
   };
 
   angular_module.controller('allexAngularDataTableController', ['$scope', '$parse', 'uiGridConstants', function ($scope, $parse, uiGridConstants) {

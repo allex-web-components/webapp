@@ -50,7 +50,7 @@
         d.forEach (lib.doMethod.bind(null, 'set', ['actual', false]));
       }
       d = null;
-    };
+    }
 
     LogoutDeactivator.prototype._onElement = function (element, path){
       var m = path.join('.');

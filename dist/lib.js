@@ -197,12 +197,32 @@
     this._addHook ('onPreHide');
     this._addHook ('onShown');
     this._addHook ('onHidden');
+    this._helpers = null;
+
+    var helperObj = this.getConfigVal ('helperObjects');
+    for (var i in helperObj) {
+      this.assignHelperObj (i, helperObj[i]);
+    }
   }
   lib.inherit (WebElement, BasicElement);
 
   WebElement.prototype.__cleanUp = function () {
+    if (this._helpers) {
+      lib.container.destroyAll(this._helpers);
+      this._helpers.destroy();
+    }
+    this._helpers = null;
     this.$element = null;
     BasicElement.prototype.__cleanUp.call(this);
+  };
+
+  WebElement.prototype.assignHelperObj = function (name, obj) {
+    if (!this._helpers) this._helpers = new lib.Map();
+    this._helpers.add (name, obj);
+  };
+
+  WebElement.prototype.getHelperObj = function (name) {
+    return this._helpers.get(name);
   };
 
   WebElement.prototype.initialize = function () {
@@ -1550,7 +1570,7 @@
         d.forEach (lib.doMethod.bind(null, 'set', ['actual', false]));
       }
       d = null;
-    };
+    }
 
     LogoutDeactivator.prototype._onElement = function (element, path){
       var m = path.join('.');

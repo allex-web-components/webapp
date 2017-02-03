@@ -913,6 +913,7 @@ angular.module('allex_applib', []);
   function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
     this.afterEdit = new lib.HookCollection();
+    this.config.grid = lib.extend({}, AngularDataTable.DEFAULT_GRID_CONFIG, this.config.grid);
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
   }
   lib.inherit(AngularDataTable, BasicAngularElement);
@@ -1027,7 +1028,7 @@ angular.module('allex_applib', []);
   };
 
   AngularDataTable.prototype.getCleanData = function () {
-    angular.toJson(this.get('data'));
+    angular.copy(this.getTableData());
   };
 
   AngularDataTable.prototype.appendNewRow = function (current_length) {
@@ -1037,7 +1038,7 @@ angular.module('allex_applib', []);
       ///TODO: uzmi iz grid options columnDefs i popuni row sa null ...
     }
 
-    var f = this.getConfigVal('config.fAppendNewRow');
+    var f = this.getConfigVal('appendNewRow');
     return f ? f(this, current_length, row) : row;
   };
 
@@ -1123,6 +1124,37 @@ angular.module('allex_applib', []);
     this.executeOnScopeIfReady ('api.grid.refresh');
   };
 
+  function extractEntity (item) {
+    return item.entity;
+  }
+
+  AngularDataTable.prototype.getTableData = function () {
+    return this.executeOnScopeIfReady('getActualData');
+  };
+
+  AngularDataTable.prototype.getRowIndexUponEntity = function (entity_data) {
+    var rows = this.getApi().grid.rows;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].entity.$$hashKey === entity_data.$$hashKey) return i;
+    }
+    return -1;
+  };
+
+  AngularDataTable.prototype.removeRow = function (entity_data) {
+    var data = this.getTableData(),
+      index = this.getRowIndexUponEntity (entity_data);
+    if (index < 0) return;
+
+    data.splice(index, 1);
+    this.refreshGrid();
+  };
+
+  AngularDataTable.isSpecialColumnName = function (key) {
+    return '-' === key;
+  };
+
+  AngularDataTable.DEFAULT_GRID_CONFIG = null;
+
   module.elements.AngularDataTable = AngularDataTable;
   applib.registerElementType('AngularDataTable', AngularDataTable);
   module.ANGULAR_REQUIREMENTS.add ('AngularDataTable', ['ui.grid','ui.grid.edit', 'ui.grid.autoResize', 'ui.grid.resizeColumns']);
@@ -1136,8 +1168,6 @@ angular.module('allex_applib', []);
     this.gridOptions = null;
     this.api = null;
 
-    this._parse = $parse;
-    this._getActualData = null;
     this._listenToEditEvents = false;
   }
   lib.inherit (AllexAngularDataTableController, AngularDataAwareController);
@@ -1146,8 +1176,6 @@ angular.module('allex_applib', []);
 
   AllexAngularDataTableController.prototype.__cleanUp = function () {
     this.uiGridConstants = null;
-    this._getActualData = null;
-    this._parse = null;
     this.rowCountChanged.destroy();
     this.rowCountChanged = null;
 
@@ -1173,11 +1201,6 @@ angular.module('allex_applib', []);
     }
 
     this.gridOptions.onRegisterApi = this.set.bind(this, 'api');
-    if (lib.isString(this.gridOptions.data)) {
-      this._getActualData = this._parse (this.gridOptions.data).bind(null, this.scope);
-    }else{
-      this._getActualData = doReturn.bind(null, this.gridOptions.data);
-    }
   };
 
   AllexAngularDataTableController.prototype.set_api = function (api) {
@@ -1202,9 +1225,8 @@ angular.module('allex_applib', []);
   function doReturn (what) { return what; }
 
   AllexAngularDataTableController.prototype.set_row_count = function (val) {
-    if (!this._getActualData) return false; ///TODO ...
 
-    var rows = this._getActualData();
+    var rows = this.getActualData();
     if (!lib.isArray(rows)) return false; ///TODO ...
 
     var rc = rows.length,
@@ -1217,17 +1239,18 @@ angular.module('allex_applib', []);
     }else{
       while (rows.length < val) {
         new_row = this.call_cb('appendNewRow', [rows.length]);
-        //console.log('will append new row ...', new_row);
         rows.push (new_row);
       }
     }
     return true;
   };
 
+  AllexAngularDataTableController.prototype.getActualData = function (){
+    return (lib.isString(this.gridOptions.data)) ? this.scope.$eval(this.gridOptions.data) : this.gridOptions.data;
+  };
+
   AllexAngularDataTableController.prototype.get_row_count = function () {
-    if (!this._getActualData) return null;
-    var d = this._getActualData();
-    return lib.isArray(d) ? d.length : null;
+    return this.getActualData().length;
   };
 
   angular_module.controller('allexAngularDataTableController', ['$scope', '$parse', 'uiGridConstants', function ($scope, $parse, uiGridConstants) {
@@ -1569,5 +1592,126 @@ angular.module('allex_applib', []);
     };
 
     applib.registerPreprocessor('Notificator', Notificator);
+
+})(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
+//samo da te vidim
+(function (allex, module, applib, $) {
+  'use strict';
+
+  var lib = allex.lib,
+    BasicModifier = applib.BasicModifier,
+    AngularDataTable = module.elements.AngularDataTable;
+
+
+  function RowManipulator (modifier) {
+    this.modifier = modifier;
+  }
+
+  RowManipulator.prototype.destroy = function () {
+    this.modifier = null;
+  };
+
+  RowManipulator.prototype.isEmpty = function (entity) {
+    return modifier.isEmpty(entity);
+  };
+
+  function AngularDataTableAutoAppendRow (options) {
+    BasicModifier.call(this, options);
+  }
+  lib.inherit (AngularDataTableAutoAppendRow, BasicModifier);
+  AngularDataTableAutoAppendRow.prototype.destroy = function () {
+    BasicModifier.prototype.destroy.call(this);
+  };
+
+  AngularDataTableAutoAppendRow.prototype.ALLOWED_ON = function () {
+    return 'AngularDataTable';
+  };
+
+  AngularDataTableAutoAppendRow.prototype.DEFAULT_CONFIG = function () {
+    return {
+      eventName : 'removeRow',
+      isEmpty : function (obj) {
+        for (var i in obj) {
+          if (lib.isVal(obj[i])) return false;
+        }
+
+        return true;
+      },
+      isFull : function (obj) {
+        for (var i in obj) {
+          if (!lib.isVal(obj[i])) return false;
+        }
+        return true;
+      }
+    };
+  };
+
+  AngularDataTableAutoAppendRow.prototype._addNewRow = function (options) {
+    var ret = {
+    }, item, key;
+
+    for (var i in options.grid.columnDefs) {
+      item = options.grid.columnDefs[i];
+      key = item.field || item.name;
+
+      if (AngularDataTable.isSpecialColumnName(key)) continue;
+      ret[key] = null;
+    }
+
+    return ret;
+  };
+
+  AngularDataTableAutoAppendRow.prototype.doProcess = function (name, options, links, logic, resources) {
+    var eventName = this.getConfigVal('eventName');
+
+    if (!this.getConfigVal('newRow')) {
+      this.setConfigVal ('newRow', this._addNewRow.bind(this, options), true);
+    }
+
+    if (!lib.isFunction (this.getConfigVal('newRow'))) throw new Error('newRow is not a function');
+    if (!lib.isFunction (this.getConfigVal('isEmpty'))) throw new Error('isEmptyRow must be a function');
+    if (!lib.isFunction (this.getConfigVal('isFull'))) throw new Error('isFull must be a function');
+
+    options.appendNewRow = this.getConfigVal ('newRow');
+    if (!options.helperObj) {
+      options.helperObj = {};
+    }
+    options.helperObj.autoappend = new RowManipulator(this);
+
+    var ret = [{
+      triggers : '.!afterEdit',
+      references : '.',
+      handler : this._onAfterEdit.bind(this, this.getConfigVal('isEmpty'), this.getConfigVal('isFull'))
+    },
+    {
+      triggers : '.$element!'+eventName,
+      references : '.',
+      handler : this._onRemoveRequested.bind(this)
+    }];
+
+    Array.prototype.push.apply (logic, ret);
+  };
+
+  AngularDataTableAutoAppendRow.prototype.isEmptyRow = function (entity, isEmpty) {
+    return isEmpty(entity);
+  };
+
+  AngularDataTableAutoAppendRow.prototype._onAfterEdit = function (isEmpty, isFull, table,  obj) {
+    if (!obj.row || !isFull(obj.row)) return; //nothing to be done ....
+    var data = table.getTableData(),
+      last = data[data.length-1];
+    if (isEmpty (last) || !isFull(last)) return;
+    table.set('row_count', table.get('row_count')+1);
+  };
+
+  AngularDataTableAutoAppendRow.prototype._onRemoveRequested = function (table, evnt, obj) {
+    table.removeRow (obj);
+  };
+
+  applib.registerModifier ('AngularDataTableAutoAppendRow', AngularDataTableAutoAppendRow);
+
+  return AngularDataTableAutoAppendRow;
+
+
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
