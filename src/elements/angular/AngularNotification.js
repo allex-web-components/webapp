@@ -22,16 +22,37 @@
 
   AngularNotification.prototype._processToCache = function (regexp, item) {
     var id = $(item).attr('id');
-    if (!id.match (regexp)) return;
+    if (!id.match (regexp) || !this.isDefaultTemplate(id)) return;
+
+    this._addToCache(item, id);
+    $(item).remove();
+  };
+
+  AngularNotification.prototype._addToCache = function (item, id) {
+    if (!id) {
+      id = $(item).attr('id');
+    }
     if (!this._temp_cache) this._temp_cache = new lib.Map ();
     this._temp_cache.add(id, $(item).html());
-    $(item).remove();
+  };
+
+  AngularNotification.prototype.isDefaultTemplate = function (id) {
+    var dt = this.getConfigVal ('defaultTemplate');
+    if (!dt) return false;
+    return (id === dt.error || id === dt.success || id === dt.progress);
   };
 
   AngularNotification.prototype.initialize = function () {
     BasicAngularElement.prototype.initialize.call(this);
     var regexp = new RegExp ('^'+'angular_notification_'+this.get('id'));
     $('#references').children().toArray().forEach (this._processToCache.bind(this, regexp));
+    var default_templates = this.getConfigVal('defaultTemplate');
+    if (default_templates) {
+      if (default_templates.error) this._addToCache ($('#references #'+default_templates.error));
+      if (default_templates.success) this._addToCache ($('#references #'+default_templates.success));
+      if (default_templates.progress) this._addToCache ($('#references #'+default_templates.progress));
+    }
+
     this.$element.attr({
       'allex-notification' : ''
     });
@@ -60,17 +81,23 @@
     if (this.data === data) return false;
     this.data = data;
 
+    var default_template;
+
     if (!this.data) {
       this._doHide();
       return;
     }
 
+    var template = this.templateName(data.name);
+
     if (!this.$scopectrl.$templateCache.get(this.templateName(data.name))) {
-      //if no template simply do nothing ...
-      return;
+      template = this.getConfigVal('defaultTemplate') ? this.getConfigVal('defaultTemplate')[data.type] : null;
+      if (!template) return;
+
+      template = '#references #'+template; //samo
     }
 
-    this.$scopectrl.html = this.templateName(data.name);
+    this.$scopectrl.html = template;
     this.$scopectrl.notificationClass = data.notificationClass || null;
     this.$scopectrl.title = data.title || null;
     this.$scopectrl.set('data', data.content_data);
@@ -121,7 +148,7 @@
     }
 
     notificationClass = (notificationClass || '')+' '+statusClass;
-    this.set('data', {name : name, content_data : content_data, notificationClass : notificationClass, title : title});
+    this.set('data', {name : name, content_data : content_data, notificationClass : notificationClass, title : title, type : statusClass});
   };
 
   function _toTemplateCache (anc, item, key) {
