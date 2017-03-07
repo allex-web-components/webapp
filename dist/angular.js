@@ -1370,7 +1370,6 @@ angular.module('allex_applib', []);
       template = '#references #'+template; //samo
     }
 
-    console.log('IDEMO SA ...', template);
     this.$scopectrl.html = template;
     this.$scopectrl.notificationClass = data.notificationClass || null;
     this.$scopectrl.title = data.title || null;
@@ -1715,21 +1714,34 @@ angular.module('allex_applib', []);
       triggers : '.$element!'+eventName,
       references : '.',
       handler : this._onRemoveRequested.bind(this)
+    },{
+      triggers : '.:data',
+      references : '.',
+      handler : this._onData.bind(this, this.getConfigVal('isEmpty'), this.getConfigVal('isFull'))
     }];
 
     Array.prototype.push.apply (logic, ret);
+  };
+
+  AngularDataTableAutoAppendRow.prototype._onData = function (isEmpty, isFull, Table, data) {
+    if (lib.isNull(data)) return;
+    this._doAppend (isEmpty, isFull, Table);
   };
 
   AngularDataTableAutoAppendRow.prototype.isEmptyRow = function (entity, isEmpty) {
     return isEmpty(entity);
   };
 
-  AngularDataTableAutoAppendRow.prototype._onAfterEdit = function (isEmpty, isFull, table,  obj) {
-    if (!obj.row || !isFull(obj.row)) return; //nothing to be done ....
+  AngularDataTableAutoAppendRow.prototype._doAppend = function (isEmpty, isFull, table) {
     var data = table.getTableData(),
       last = data[data.length-1];
     if (isEmpty (last) || !isFull(last)) return;
     table.set('row_count', table.get('row_count')+1);
+  }
+
+  AngularDataTableAutoAppendRow.prototype._onAfterEdit = function (isEmpty, isFull, table,  obj) {
+    if (!obj.row || !isFull(obj.row)) return; //nothing to be done ....
+    this._doAppend (isEmpty, isFull, table);
   };
 
   AngularDataTableAutoAppendRow.prototype._onRemoveRequested = function (table, evnt, obj) {
