@@ -75,7 +75,6 @@
   };
 
   BaseHowlerObject.prototype.start = function (sound, safe, sprite) {
-    ///will resolve promise once ended ...
     var hs = this.getSound(sound);
 
     if (!hs) {

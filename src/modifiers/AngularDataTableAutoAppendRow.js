@@ -113,7 +113,7 @@
       last = data[data.length-1];
     if (isEmpty (last) || !isFull(last)) return;
     table.set('row_count', table.get('row_count')+1);
-  }
+  };
 
   AngularDataTableAutoAppendRow.prototype._onAfterEdit = function (isEmpty, isFull, table,  obj) {
     if (!obj.row || !isFull(obj.row)) return; //nothing to be done ....

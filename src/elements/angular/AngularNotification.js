@@ -29,6 +29,7 @@
   };
 
   AngularNotification.prototype._addToCache = function (item, id) {
+    if (item.length === 0) throw new Error ('Unable to find item '+id);
     if (!id) {
       id = $(item).attr('id');
     }
