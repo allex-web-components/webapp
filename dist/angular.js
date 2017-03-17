@@ -910,11 +910,27 @@ angular.module('allex_applib', []);
     CBMapable = lib.CBMapable,
     q = lib.q;
 
+
+  function addDefaultHeaderCellFilter (defaultHeaderCellFilter, columnDef) {
+    if ('headerCellFilter' in columnDef) return;
+    columnDef.headerCellFilter = defaultHeaderCellFilter;
+  }
+
+  function prepareActionsTable(config) {
+    var ret = lib.extend({}, config.actions, {field : '-', enableFiltering : false});
+    addDefaultHeaderCellFilter (config.defaultHeaderCellFilter, ret);
+    return ret;
+  }
+
   function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
     this.afterEdit = new lib.HookCollection();
     this.config.grid = lib.extend({}, AngularDataTable.DEFAULT_GRID_CONFIG, this.config.grid);
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
+
+    if (this.config.defaultHeaderCellFilter) {
+      this.config.grid.columnDefs.forEach (addDefaultHeaderCellFilter.bind (null, this.config.defaultHeaderCellFilter));
+    }
   }
   lib.inherit(AngularDataTable, BasicAngularElement);
 
@@ -994,7 +1010,7 @@ angular.module('allex_applib', []);
       if (!cd.displayName) cd.displayName = actions.displayName;
       if (!cd.cellTemplate) cd.cellTemplate = actions.cellTemplate;
     }else{
-      this.config.grid.columnDefs.unshift (lib.extend ({}, actions, {field : '-'}));
+      this.config.grid.columnDefs.unshift (lib.extend ({}, actions, prepareActionsTable(this.config)));
     }
   };
 
@@ -1302,6 +1318,7 @@ angular.module('allex_applib', []);
   };
 
   AngularNotification.prototype._addToCache = function (item, id) {
+    if (item.length === 0) throw new Error ('Unable to find item '+id);
     if (!id) {
       id = $(item).attr('id');
     }
@@ -1593,8 +1610,6 @@ angular.module('allex_applib', []);
     lib.inherit (Notificator, BasicProcessor);
 
     Notificator.prototype.process = function (desc) {
-
-      console.log('SAMO MI POKAZI STA JE CONFIG ....', this.config);
       for (var element_name in this.config) {
         this.createNotificationElement (element_name, this.config[element_name], desc);
       }
@@ -1726,6 +1741,7 @@ angular.module('allex_applib', []);
   };
 
   AngularDataTableAutoAppendRow.prototype._onData = function (isEmpty, isFull, Table, data) {
+    ///TODO: here is a potential problem : once data is null this wouldn't append special row ... might be a problem ...
     if (lib.isNull(data)) return;
     this._doAppend (isEmpty, isFull, Table);
   };
@@ -1737,6 +1753,11 @@ angular.module('allex_applib', []);
   AngularDataTableAutoAppendRow.prototype._doAppend = function (isEmpty, isFull, table) {
     var data = table.getTableData(),
       last = data[data.length-1];
+
+    if (data.length === 0) {
+      table.set('row_count', 1);
+      return;
+    }
     if (isEmpty (last) || !isFull(last)) return;
     table.set('row_count', table.get('row_count')+1);
   };

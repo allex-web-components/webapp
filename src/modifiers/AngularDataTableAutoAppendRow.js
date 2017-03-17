@@ -100,6 +100,7 @@
   };
 
   AngularDataTableAutoAppendRow.prototype._onData = function (isEmpty, isFull, Table, data) {
+    ///TODO: here is a potential problem : once data is null this wouldn't append special row ... might be a problem ...
     if (lib.isNull(data)) return;
     this._doAppend (isEmpty, isFull, Table);
   };
@@ -111,6 +112,11 @@
   AngularDataTableAutoAppendRow.prototype._doAppend = function (isEmpty, isFull, table) {
     var data = table.getTableData(),
       last = data[data.length-1];
+
+    if (data.length === 0) {
+      table.set('row_count', 1);
+      return;
+    }
     if (isEmpty (last) || !isFull(last)) return;
     table.set('row_count', table.get('row_count')+1);
   };

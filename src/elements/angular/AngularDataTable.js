@@ -8,11 +8,27 @@
     CBMapable = lib.CBMapable,
     q = lib.q;
 
+
+  function addDefaultHeaderCellFilter (defaultHeaderCellFilter, columnDef) {
+    if ('headerCellFilter' in columnDef) return;
+    columnDef.headerCellFilter = defaultHeaderCellFilter;
+  }
+
+  function prepareActionsTable(config) {
+    var ret = lib.extend({}, config.actions, {field : '-', enableFiltering : false});
+    addDefaultHeaderCellFilter (config.defaultHeaderCellFilter, ret);
+    return ret;
+  }
+
   function AngularDataTable (id, options) {
     BasicAngularElement.call(this, id, options);
     this.afterEdit = new lib.HookCollection();
     this.config.grid = lib.extend({}, AngularDataTable.DEFAULT_GRID_CONFIG, this.config.grid);
     if (!this.config.grid.data) this.config.grid.data = '_ctrl.data';
+
+    if (this.config.defaultHeaderCellFilter) {
+      this.config.grid.columnDefs.forEach (addDefaultHeaderCellFilter.bind (null, this.config.defaultHeaderCellFilter));
+    }
   }
   lib.inherit(AngularDataTable, BasicAngularElement);
 
@@ -92,7 +108,7 @@
       if (!cd.displayName) cd.displayName = actions.displayName;
       if (!cd.cellTemplate) cd.cellTemplate = actions.cellTemplate;
     }else{
-      this.config.grid.columnDefs.unshift (lib.extend ({}, actions, {field : '-'}));
+      this.config.grid.columnDefs.unshift (lib.extend ({}, actions, prepareActionsTable(this.config)));
     }
   };
 
