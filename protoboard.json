@@ -37,7 +37,8 @@
       "src/elements/angular/AngularNotification.js",
       "src/resources/AngularBootstrapper.js",
       "src/preprocessors/Notificator.js",
-      "src/modifiers/AngularDataTableAutoAppendRow.js"
+      "src/modifiers/AngularDataTableAutoAppendRow.js",
+      "src/modifiers/TimeInterval.js"
     ],
     "apploader" : [
       "src/apploader.js"
