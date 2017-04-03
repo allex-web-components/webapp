@@ -131,6 +131,10 @@
     return !!this.getConfigVal ('ctor') ;
   };
 
+  VektrCanvas.prototype.dropCaches = function () {
+    vektr.helpers.dropCaches();
+  };
+
   module.elements.VektrCanvas = VektrCanvas;
   applib.registerElementType ('VektrCanvas', VektrCanvas);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, vektr, jQuery);

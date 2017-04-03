@@ -445,6 +445,16 @@
     return defer;
   };
 
+
+  AnimatedImageZipLibrary.prototype.doUnload = function () {
+    var defer = q.defer();
+    this.zl.destroy();
+    console.log('SAMO DA VIDIM ...', this.zl);
+    this.zl = null;
+
+    return defer;
+  };
+
   AnimatedImageZipLibrary.prototype.CONFIG_SCHEMA = function () { return CONFIG_SCHEMA; };
   AnimatedImageZipLibrary.prototype.DEFAULT_CONFIG = function () { return null; };
 

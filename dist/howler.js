@@ -137,6 +137,18 @@
     return defer;
   };
 
+  HowlerResource.prototype.doUnload = function () {
+    this.sounds.traverse (this._unloadSound.bind(this));
+    this.sounds.purge();
+    return q.resolve(true);
+  };
+
+  HowlerResource.prototype._unloadSound = function (item, name) {
+    if (!item) return;
+    item.stop();
+    item.unload();
+  };
+
   function toURL (baseURL, url) {
     //za sad neka ga ovako ...
     return baseURL+'/'+url;

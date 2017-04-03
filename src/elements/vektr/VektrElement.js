@@ -14,6 +14,10 @@
     BasicElement.prototype.__cleanUp.call(this);
   };
 
+  VektrElement.prototype.dropCaches = function () {
+    vektr.helpers.dropCaches();
+  };
+
   module.elements.VektrElement = VektrElement;
   applib.registerElementType('VektrElement', VektrElement);
 
