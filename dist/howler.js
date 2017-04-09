@@ -82,9 +82,10 @@
     }
 
     var d = lib.q.defer(), r = d.resolve.bind(d, true);
+    hs.stop();
     hs.on ('stop', r);
     hs.on ('end', r);
-
+    console.log('will play ', sound, safe, sprite);
     hs.play(sprite);
     return d.promise.then (_unhookStart.bind(null, hs, r));
   };
@@ -166,8 +167,9 @@
       preload : true,
       mute : false,
       onload : d.resolve.bind(d, true),
-      onloaderror : this._failed.bind(this,d),
-      html5: lib.isUndef(item.html5) ? true : item.html5
+      onloaderror : this._failed.bind(this,d, item),
+      //html5: lib.isUndef(item.html5) ? true : item.html5
+      html5: item.html5 || false
     });
 
     this.sounds.add (item.name, h);
@@ -176,6 +178,7 @@
 
   HowlerResource.prototype._failed = function (d) {
     console.log('failed to load', arguments);
+    console.trace();
     d.reject(new Error('failed'));
   };
 
