@@ -33,7 +33,7 @@
     this.zl = new ZipLoader(extractor ? new RegExp(extractor) : null);
     var p = this.zl.load(this.getConfigVal('url'));
 
-    p.done (console.log.bind(console, 'Zip '+this.getConfigVal('url')+' has been unpacked successfully'), console.log.bind(console, 'Failed to unpack '+this.getConfigVal('url')));
+    //p.done (console.log.bind(console, 'Zip '+this.getConfigVal('url')+' has been unpacked successfully'), console.log.bind(console, 'Failed to unpack '+this.getConfigVal('url')));
     qlib.promise2defer(p, defer);
     return defer;
   };
@@ -42,7 +42,6 @@
   AnimatedImageZipLibrary.prototype.doUnload = function () {
     var defer = q.defer();
     this.zl.destroy();
-    console.log('SAMO DA VIDIM ...', this.zl);
     this.zl = null;
 
     return defer;

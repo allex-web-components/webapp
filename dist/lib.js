@@ -440,7 +440,7 @@
     this.zl = new ZipLoader(extractor ? new RegExp(extractor) : null);
     var p = this.zl.load(this.getConfigVal('url'));
 
-    p.done (console.log.bind(console, 'Zip '+this.getConfigVal('url')+' has been unpacked successfully'), console.log.bind(console, 'Failed to unpack '+this.getConfigVal('url')));
+    //p.done (console.log.bind(console, 'Zip '+this.getConfigVal('url')+' has been unpacked successfully'), console.log.bind(console, 'Failed to unpack '+this.getConfigVal('url')));
     qlib.promise2defer(p, defer);
     return defer;
   };
@@ -449,7 +449,6 @@
   AnimatedImageZipLibrary.prototype.doUnload = function () {
     var defer = q.defer();
     this.zl.destroy();
-    console.log('SAMO DA VIDIM ...', this.zl);
     this.zl = null;
 
     return defer;
@@ -1042,6 +1041,10 @@
     Selector.prototype.__cleanUp.call(this);
   };
 
+  RouteController.prototype.DEFAULT_CONFIG = function () {
+    return lib.extend (Selector.prototype.DEFAULT_CONFIG(), {selector : 'ul li a', attributeVal : 'data-route'});
+  };
+
   applib.registerModifier ('RouteController', RouteController);
 
   module.modifiers.Selector = Selector;
@@ -1452,12 +1455,15 @@
       BasicElement.prototype.__cleanUp.call(this);
     };
 
-    TabViewElement.prototype._doInitializeView = function (tablist, tabs, tabsmap, default_tab){
+    TabViewElement.prototype._doInitializeView = function (tablist, tabs, tabsmap, default_tab, selector, bind_actual){
       this.default_page = default_tab;
       for (var i = 0; i < tablist.length; i++) {
         this.addPage (tabsmap[tablist[i]], tabs[i]);
       }
-      this.reset();
+
+      if (!bind_actual || (bind_actual && selector.get('actual'))) {
+        this.reset();
+      }
     };
 
     TabViewElement.prototype.getContainer = function () {
@@ -1484,7 +1490,10 @@
 
     TabViewProcessor.prototype.createTabView = function (name, config, desc) {
       if (!config.tabs) throw new Error ('No tabs record in config for tab view ', name);
-      var refs = ['element.'+name+'_tab_view'];
+      if (!('bind_actual' in config)) {
+        config.bind_actual = true;
+      }
+      var refs = ['element.'+name+'_tab_view', config.selector];
       desc.elements.push ({
         name : name+'_tab_view',
         type : 'TabViewElement',
@@ -1502,6 +1511,15 @@
         handler : this._initializeElement.bind(this, name, config, tablist)
       });
 
+      if (config.bind_actual) {
+        desc.logic.push ({
+          triggers : config.selector+':actual',
+          references : refs.join (','),
+          handler : this._onSelectorActual.bind(this, name, config, tablist)
+        });
+      }
+
+
       if (!config.selector) return; //nothing more to be done ...
       desc.logic.push ({
         triggers : config.selector+'.$element!onSelected',
@@ -1510,9 +1528,23 @@
       });
     };
 
-    TabViewProcessor.prototype._initializeElement = function (name, config, tablist, element) {
-      var tabs = Array.prototype.slice.call(arguments, 4);
-      element._doInitializeView (tablist, tabs, config.tabs, config.default_tab || null);
+    TabViewProcessor.prototype._onSelectorActual = function (name, config, tablist, element, selector) {
+      var tabs = Array.prototype.slice.call(arguments, 5),
+        actual = arguments[5+tablist.length];
+
+      if (actual) {
+        element.reset();
+        var ps = element.get('page');
+        element.set('page', null);
+        this._onSelected(element, null, ps);
+      }else{
+        tabs.forEach (lib.doMethod.bind(null, 'set', ['actual', false]));
+      }
+    };
+
+    TabViewProcessor.prototype._initializeElement = function (name, config, tablist, element, selector) {
+      var tabs = Array.prototype.slice.call(arguments, 5);
+      element._doInitializeView (tablist, tabs, config.tabs, config.default_tab || null, selector, config.bind_actual);
     };
 
     TabViewProcessor.prototype._onSelected = function (tabview, evnt, page) {

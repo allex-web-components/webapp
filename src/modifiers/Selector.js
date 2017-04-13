@@ -62,6 +62,10 @@
     Selector.prototype.__cleanUp.call(this);
   };
 
+  RouteController.prototype.DEFAULT_CONFIG = function () {
+    return lib.extend (Selector.prototype.DEFAULT_CONFIG(), {selector : 'ul li a', attributeVal : 'data-route'});
+  };
+
   applib.registerModifier ('RouteController', RouteController);
 
   module.modifiers.Selector = Selector;
