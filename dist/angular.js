@@ -952,9 +952,14 @@ angular.module('allex_applib', []);
     if (item[prop]) return true;
   }
 
-  AngularDataTable.prototype._replaceCellTemplate = function (item, index, arr) {
-    if (!item.cellTemplate || item.cellTemplate.charAt(0) !== '#') return;
-    item.cellTemplate = jQuery('#references > '+item.cellTemplate).html();
+  function replaceTemplate (item, field) {
+    if (!item[field] || item[field].charAt(0) !== '#') return;
+    item[field] = jQuery('#references > '+item[field]).html();
+  }
+
+  AngularDataTable.prototype._replacePossibleTemplates = function (item) {
+    replaceTemplate(item, 'cellTemplate')
+    replaceTemplate (item, 'filterHeaderTemplate');
   };
 
   AngularDataTable.prototype.initialize = function () {
@@ -964,7 +969,7 @@ angular.module('allex_applib', []);
     var resizable = this.config.grid.enableColumnResizing || lib.traverseConditionally (this.getColumnDefs(), checkIfResizable);
     var noDataContent = this.getConfigVal('noDataContent');
     var dataString = this.getConfigVal('grid.data');
-    this.getColumnDefs().forEach (this._replaceCellTemplate.bind(this));
+    this.getColumnDefs().forEach (this._replacePossibleTemplates.bind(this));
 
     var $container = $('<div class="table_container" ng-show="'+dataString+'.length"></div>');
     var $noDataContainer = $('<div class="no_data_container" ng-show = "!'+dataString+'.length"></div>');
@@ -1032,7 +1037,33 @@ angular.module('allex_applib', []);
     //patch realative stupid approach ....
     this.config.grid.enableHorizontalScrollbar = this.config.grid.enableHorizontalScrollbar === false ? _ctrl.uiGridConstants.scrollbars.NEVER : _ctrl.uiGridConstants.scrollbars.ALWAYS;
     this.config.grid.enableVerticalScrollbar = this.config.grid.enableVerticalScrollbar === false ? _ctrl.uiGridConstants.scrollbars.NEVER : _ctrl.uiGridConstants.scrollbars.ALWAYS;
+
+    this.config.grid.columnDefs.forEach (this._processFilters.bind(this, _ctrl));
     _ctrl.set('gridOptions', this.config.grid);
+  };
+
+  function _processSingleFilter (FILTERS, filter_data) {
+    if (filter_data.type) {
+      filter_data.type = FILTERS[filter_data.type];
+    }
+
+    if (filter_data.condition && lib.isString(filter_data.condition)) {
+      filter_data.condition = FILTERS[filter_data.condition];
+    }
+  }
+
+  AngularDataTable.prototype._processFilters = function (_ctrl, coldef, index) {
+    var FILTERS = _ctrl.uiGridConstants.filter;
+
+    if (coldef.filter) {
+      _processSingleFilter (FILTERS,coldef.filter);
+      return;
+    }
+
+    if (coldef.filters) {
+      coldef.filters.forEach (_processSingleFilter.bind(null, FILTERS));
+      return;
+    }
   };
 
   AngularDataTable.prototype.set_data = function (data) {
