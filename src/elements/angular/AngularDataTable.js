@@ -56,7 +56,7 @@
   }
 
   AngularDataTable.prototype._replacePossibleTemplates = function (item) {
-    replaceTemplate(item, 'cellTemplate')
+    replaceTemplate(item, 'cellTemplate');
     replaceTemplate (item, 'filterHeaderTemplate');
   };
 
