@@ -124,16 +124,18 @@
     BasicResourceLoader.prototype.__cleanUp.call(this);
   };
 
+  function toNull () {return null;}
+
   HowlerResource.prototype.doLoad = function () {
     var defaults = {
       baseURL : this.getConfigVal('baseURL'),
       volume : this.getConfigVal('volume')
     };
 
-    var p = lib.q.all(this.getConfigVal ('sounds').map(this._loadASound.bind(this, defaults)));
-    p.done(console.log.bind(console, 'done'), console.log.bind(console, 'failed'));
 
-    var defer = lib.q.defer();
+    var defer = lib.q.defer(), loader = this.getConfigVal('sounds').map (toNull);
+    var p = lib.q.all(this.getConfigVal ('sounds').map(this._loadASound.bind(this, defaults, defer, loader)));
+
     lib.qlib.promise2defer(p, defer);
     return defer;
   };
@@ -155,7 +157,17 @@
     return baseURL+'/'+url;
   }
 
-  HowlerResource.prototype._loadASound = function (defaults, ni) {
+  HowlerResource.prototype._notifyMainDefer = function (maindefer, defer, index, arr) {
+    arr[index] = true;
+    var nl = arr.filter(lib.isVal), n = {
+      type : 'howler',
+      percent: Math.floor(nl.length*100/arr.length)
+    };
+    maindefer.notify (n);
+    defer.resolve(true);
+  };
+
+  HowlerResource.prototype._loadASound = function (defaults, maindefer, loader_arr, ni, index) {
     var d = lib.q.defer(),
       item = lib.extend ({}, defaults, ni),
       h =  new Howl ({
@@ -166,9 +178,8 @@
       sprite : item.sprite || undefined,
       preload : true,
       mute : false,
-      onload : d.resolve.bind(d, true),
+      onload : this._notifyMainDefer.bind(this, maindefer, d, index, loader_arr),
       onloaderror : this._failed.bind(this,d, item),
-      //html5: lib.isUndef(item.html5) ? true : item.html5
       html5: item.html5 || false
     });
 
