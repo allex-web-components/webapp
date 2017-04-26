@@ -47,19 +47,12 @@
     this.renderer = null;
     this.vektrEvent = new lib.HookCollection ();
     this.data = null;
-    this.loadEvent = new lib.HookCollection();
-    this.loadEvent.attach(console.log.bind(console, 'load event'));
   }
   lib.inherit (VektrCanvas, WebElement);
   VektrCanvas.prototype.__cleanUp = function () {
-    this.loadEvent.destroy();
-    this.loadEvent = null;
     this.vektrEvent.destroy();
     this.vektrEvent = null;
     this.data = null;
-    ///TODO ...
-    this.loadEvent.destroy();
-    this.loadEvent = null;
     WebElement.prototype.__cleanUp.call(this);
   };
 
