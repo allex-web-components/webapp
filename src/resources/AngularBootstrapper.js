@@ -24,6 +24,11 @@
     return defer;
   };
 
+  function _appendToDeps (deps, item) {
+    var diff = lib.arryOperations.difference (item, deps);
+    Array.prototype.push.apply (deps, diff);
+  }
+
   AngularBootstrapper.prototype._onReady = function (defer) {
     var deps = this.getConfigVal('angular_dependencies');
     if (deps) {
@@ -32,6 +37,8 @@
     }else{
       deps = ['allex_applib'];
     }
+
+    module.ANGULAR_REQUIREMENTS.traverse (_appendToDeps.bind(null, deps));
     angular.module('AllexActiveApp', deps);
     angular.module('AllexActiveApp').run (this._onModuleStarted.bind(this));
     angular.bootstrap(document, ['AllexActiveApp']);
