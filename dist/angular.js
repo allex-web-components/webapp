@@ -591,8 +591,13 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.setInputEnabled = function (fieldname, enabled) {
-    ///TODO: this does not work ....
-    this.$form.find('[name="'+fieldname+'"]').attr('data-ng-disabled', enabled ? "false" : "true");
+    var $el = this.$form.find('[name="'+fieldname+'"]');
+    $el.attr('data-ng-disabled', enabled ? "false" : "true");
+    if (enabled) {
+      $el.removeAttr('disabled');
+    }else{
+      $el.attr('disabled', 'disabled');
+    }
     this.executeOnScopeIfReady ('$apply');
   };
 
