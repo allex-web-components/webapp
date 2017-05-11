@@ -1004,7 +1004,17 @@ angular.module('allex_applib', []);
     if (!!noDataContent){
       this.$element.append($noDataContainer);
     }
-    var $actions = this.findDomReference('actions');
+    var $actions = this.findDomReference('actions'),
+      wrapper = this.getConfigVal('actionsWrapper');
+
+
+    if (wrapper) {
+      wrapper = $(wrapper);
+      $actions = wrapper.append($actions);
+    }
+  
+    console.log('samo da vidim ...', $actions);
+    
 
     if ($actions.length === 0) {
       return;
