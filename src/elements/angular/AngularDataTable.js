@@ -102,16 +102,18 @@
     if (!!noDataContent){
       this.$element.append($noDataContainer);
     }
-    var $actions = this.findDomReference('actions'),
-      wrapper = this.getConfigVal('actionsWrapper');
+    var $actions_template = this.findDomReference('actions'),
+      $actions = null,
+      wrapper = $(this.getConfigVal('actionsWrapper')),
+      $wrapper = wrapper ? $(wrapper) : null;
 
-
-    if (wrapper) {
-      wrapper = $(wrapper);
-      $actions = wrapper.append($actions);
+    if ($wrapper) {
+      $actions = $actions_template.length ? $wrapper.append($actions_template) : null;
+    }else{
+      $actions = $actions_template.length ? $actions_template : null;
     }
  
-    if ($actions.length === 0) {
+    if (!$actions) {
       return;
     }
     var cd = lib.arryOperations.findElementWithProperty (this.config.grid.columnDefs, 'field', '-'),
