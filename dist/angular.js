@@ -591,8 +591,13 @@ angular.module('allex_applib', []);
   };
 
   AngularFormLogic.prototype.setInputEnabled = function (fieldname, enabled) {
-    ///TODO: this does not work ....
-    this.$form.find('[name="'+fieldname+'"]').attr('data-ng-disabled', enabled ? "false" : "true");
+    var $el = this.$form.find('[name="'+fieldname+'"]');
+    $el.attr('data-ng-disabled', enabled ? "false" : "true");
+    if (enabled) {
+      $el.removeAttr('disabled');
+    }else{
+      $el.attr('disabled', 'disabled');
+    }
     this.executeOnScopeIfReady ('$apply');
   };
 
@@ -1012,10 +1017,7 @@ angular.module('allex_applib', []);
       wrapper = $(wrapper);
       $actions = wrapper.append($actions);
     }
-  
-    console.log('samo da vidim ...', $actions);
-    
-
+ 
     if ($actions.length === 0) {
       return;
     }
@@ -1593,6 +1595,11 @@ angular.module('allex_applib', []);
     return defer;
   };
 
+  function _appendToDeps (deps, item) {
+    var diff = lib.arryOperations.difference (item, deps);
+    Array.prototype.push.apply (deps, diff);
+  }
+
   AngularBootstrapper.prototype._onReady = function (defer) {
     var deps = this.getConfigVal('angular_dependencies');
     if (deps) {
@@ -1601,6 +1608,8 @@ angular.module('allex_applib', []);
     }else{
       deps = ['allex_applib'];
     }
+
+    module.ANGULAR_REQUIREMENTS.traverse (_appendToDeps.bind(null, deps));
     angular.module('AllexActiveApp', deps);
     angular.module('AllexActiveApp').run (this._onModuleStarted.bind(this));
     angular.bootstrap(document, ['AllexActiveApp']);
