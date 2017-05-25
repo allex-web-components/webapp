@@ -104,7 +104,7 @@
     }
     var $actions_template = this.findDomReference('actions'),
       $actions = null,
-      wrapper = $(this.getConfigVal('actionsWrapper')),
+      wrapper = this.getConfigVal('actionsWrapper') ? $(this.getConfigVal('actionsWrapper')) : null,
       $wrapper = wrapper ? $(wrapper) : null;
 
     if ($wrapper) {
