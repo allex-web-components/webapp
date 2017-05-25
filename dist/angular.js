@@ -1866,9 +1866,28 @@ angular.module('allex_applib', []);
 
     $from.on('dp.change', this._onFromChanged.bind(this, config, el, $to, $from));
     $to.on ('dp.change', this._onToChanged.bind(this, config, el, $to, $from));
+    $to.on ('dp.show', this._onToShowEvent.bind(this, config, el, $to, $from));
+    $from.on('dp.show', this._onFromShowEvent.bind(this, config, el, $to, $from));
+  };
+
+  TimeInterval.prototype._onFromShowEvent = function (config, el, $to, $from, evnt) {
+    var dtp = $from.data('DateTimePicker'),
+      current = dtp.date();
+    this._onFromChanged (config, el, $to, $from, {date : current});
+  };
+
+  TimeInterval.prototype._onToShowEvent = function (config, el, $to, $from, evnt) {
+    var new_default = moment();
+    if (config.maxDateOffset) {
+      new_default = new_default.add.apply (new_default, config.maxDateOffset);
+    }
+    $to.data('DateTimePicker').maxDate(new_default);
+    var current = $to.data('DateTimePicker').date();
+    this._onToChanged (config, el, $to, $from, {date : current});
   };
 
   TimeInterval.prototype._onToChanged = function (config, el, $to, $from, evnt) {
+    console.log('stani, da li se ovo dogodilo?');
     var date = evnt.date ? evnt.date.format(config.options.format) : null;
     el.updateHashField ($to.attr('name'), date);
     $from.data('DateTimePicker').maxDate(date ? moment(date, config.options.format) : moment());
