@@ -75,13 +75,13 @@
   };
 
   BaseHowlerObject.prototype.start = function (sound, safe, sprite) {
-    var hs = this.getSound(sound);
+    var hs = this.getSound(sound),
+      d = lib.q.defer(), r = d.resolve.bind(d, true);
 
     if (!hs) {
       return safe ? d.resolve(true) : d.reject (new Error('No sound '+sound));
     }
 
-    var d = lib.q.defer(), r = d.resolve.bind(d, true);
     hs.stop();
     hs.on ('stop', r);
     hs.on ('end', r);
