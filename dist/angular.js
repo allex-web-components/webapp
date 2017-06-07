@@ -1356,7 +1356,7 @@ angular.module('allex_applib', []);
 
   AngularNotification.prototype._processToCache = function (regexp, item) {
     var id = $(item).attr('id');
-    if (!id.match (regexp) || !this.isDefaultTemplate(id)) return;
+    if (!id.match (regexp) || this.isDefaultTemplate(id)) return;
 
     this._addToCache(item, id);
     $(item).remove();
