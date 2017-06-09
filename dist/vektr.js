@@ -98,6 +98,12 @@
     WebElement.prototype.unload.call(this);
   };
 
+  VektrCanvas.prototype.sendCommand = function (command, data) {
+    if (!this.renderer) throw new Error ('No renderer, unable to execute command');
+    if (!lib.isFunction (this.renderer.doExternalCommand)) throw new Error('Renderer has no doExternalCommand method');
+    return this.renderer.doExternalCommand (command, data);
+  };
+
   VektrCanvas.prototype._runRenderers = function () {
     this.renderer.runOn(this.get('id'), this);
     window.onresize();

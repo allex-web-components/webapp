@@ -18,7 +18,8 @@
       "src/preprocessors/RoleRouter.js",
       "src/preprocessors/TabViews.js",
       "src/preprocessors/LogoutDeactivator.js",
-      "src/preprocessors/DataView.js"
+      "src/preprocessors/DataView.js",
+      "src/preprocessors/Keyboard.js"
     ],
     "howler" : [
       "src/resources/Howler.js"
