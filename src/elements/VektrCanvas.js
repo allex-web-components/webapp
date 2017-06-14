@@ -99,7 +99,10 @@
   };
 
   VektrCanvas.prototype.sendCommand = function (command, data) {
-    if (!this.renderer) throw new Error ('No renderer, unable to execute command');
+    if (!this.renderer) {
+      console.warn ('No renderer unable to send message');
+      return;
+    }
     if (!lib.isFunction (this.renderer.doExternalCommand)) throw new Error('Renderer has no doExternalCommand method');
     return this.renderer.doExternalCommand (command, data);
   };
