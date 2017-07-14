@@ -164,6 +164,8 @@
 
     if (coldef.filter) {
       _processSingleFilter (FILTERS,coldef.filter);
+      coldef.filters = [coldef.filter];
+      coldef.filter = null;
       return;
     }
 

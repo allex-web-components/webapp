@@ -181,7 +181,7 @@
   };
   linkinglib.propertyTargetHandlingRegistry.register(JQueryHtmlTargetHandler.recognizer);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib, ALLEX.WEB_COMPONENTS.allex_applinkinglib);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
 
@@ -404,7 +404,7 @@
   module.elements.WebElement = WebElement;
   applib.registerElementType ('WebElement',WebElement);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib) {
   'use strict';
 
@@ -464,7 +464,7 @@
   module.resources.AnimatedImageZipLibrary = AnimatedImageZipLibrary;
   applib.registerResourceType ('AnimatedImageZipLibrary', AnimatedImageZipLibrary);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
 
@@ -519,7 +519,7 @@
   applib.registerResourceType('FontLoader', FontLoader);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib) {
   var lib = allex.lib,
   BasicResourceLoader = applib.BasicResourceLoader,
@@ -559,7 +559,7 @@
   applib.registerResourceType('URLGenerator', URLGenerator);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);
-//samo da te vidim
+
 (function (allex, module, applib) {
   'use strict';
 
@@ -602,7 +602,7 @@
     module.mixins.DataElementMixIn = DataElementMixIn;
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);
-//samo da te vidim
+
 (function (allex, module, applib) {
   'use strict';
 
@@ -626,7 +626,7 @@
   applib.registerElementType ('DataAwareElement',DataAwareElement);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
   var lib = allex.lib,
@@ -974,7 +974,7 @@
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
 
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
 
@@ -1047,7 +1047,7 @@
 
   module.modifiers.Selector = Selector;
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module) {
   'use strict';
 
@@ -1276,7 +1276,7 @@
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent.misc);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
   var lib = allex.lib,
@@ -1429,7 +1429,7 @@
   applib.registerPreprocessor ('RoleRouter', RoleRouter);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
   var lib = allex.lib,
@@ -1557,7 +1557,7 @@
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
   var lib = allex.lib,
@@ -1641,7 +1641,7 @@
 
     applib.registerPreprocessor('LogoutDeactivator', LogoutDeactivator);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
 
@@ -1714,7 +1714,7 @@
 
   applib.registerPreprocessor ('DataView', DataViewProcessor);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
 

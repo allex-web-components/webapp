@@ -62,6 +62,7 @@ angular.module ('allex_applib', []);
   }
 
   function traverseElements (elements, used_angular_elements) {
+    if (!elements) return;
     for (var i = 0; i < elements.length; i++) {
       if (component.ANGULAR_REQUIREMENTS.get(elements[i].type) && !used_angular_elements.get(elements[i].type)){
         used_angular_elements.add(elements[i].type, true);
@@ -74,7 +75,7 @@ angular.module ('allex_applib', []);
   registerPreprocessor ('AngularPreProcessor', AngularPreProcessor);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_applib,ALLEX.WEB_COMPONENTS.allex_web_webappcomponent);
 
-//samo da te vidim
+
 angular.module('allex_applib', []);
 
 (function (allex, module, applib, angular_module) {
@@ -130,7 +131,7 @@ angular.module('allex_applib', []);
   module.elements.AngularDataAwareController = AngularDataAwareController;
   module.elements.BasicAngularElementController = BasicAngularElementController;
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
-//samo da te vidim
+
 (function (allex, module, applib, angular_module) {
   'use strict';
 
@@ -227,7 +228,7 @@ angular.module('allex_applib', []);
     module.elements.BasicAngularElement = BasicAngularElement;
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
-//samo da te vidim
+
 (function (allex, module, applib, angular_module) {
   'use strict';
   //use this if you want simply to use angular mechanism in any DOM element ....
@@ -297,7 +298,7 @@ angular.module('allex_applib', []);
     applib.registerElementType('AngularFormElement', AngularFormElement);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
-//samo da te vidim
+
 (function (allex, module, applib, angular_module) {
   'use strict';
 
@@ -904,7 +905,7 @@ angular.module('allex_applib', []);
 
   applib.registerModifier ('AngularFormLogic.bindField', FieldBindingModifier);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
-//samo da te vidim
+
 (function (allex, module, applib, angular_module) {
   'use strict';
 
@@ -1071,6 +1072,8 @@ angular.module('allex_applib', []);
 
     if (coldef.filter) {
       _processSingleFilter (FILTERS,coldef.filter);
+      coldef.filters = [coldef.filter];
+      coldef.filter = null;
       return;
     }
 
@@ -1331,7 +1334,7 @@ angular.module('allex_applib', []);
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
-//samo da te vidim
+
 (function (allex, module, applib, angular_module) {
   'use strict';
   var lib = allex.lib,
@@ -1570,7 +1573,7 @@ angular.module('allex_applib', []);
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular.module('allex_applib'));
-//samo da te vidim
+
 (function (allex, module, applib, angular, $) {
   'use strict';
 
@@ -1643,7 +1646,7 @@ angular.module('allex_applib', []);
   module.resources.AngularBootstrapper = AngularBootstrapper;
   applib.registerResourceType ('AngularBootstrapper', AngularBootstrapper);
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, angular, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
   var lib = allex.lib,
@@ -1690,7 +1693,7 @@ angular.module('allex_applib', []);
     applib.registerPreprocessor('Notificator', Notificator);
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
 
@@ -1830,7 +1833,7 @@ angular.module('allex_applib', []);
 
 
 })(ALLEX, ALLEX.WEB_COMPONENTS.allex_web_webappcomponent, ALLEX.WEB_COMPONENTS.allex_applib, jQuery);
-//samo da te vidim
+
 (function (allex, module, applib, $) {
   'use strict';
   var lib = allex.lib,

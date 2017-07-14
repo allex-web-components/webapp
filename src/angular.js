@@ -62,6 +62,7 @@ angular.module ('allex_applib', []);
   }
 
   function traverseElements (elements, used_angular_elements) {
+    if (!elements) return;
     for (var i = 0; i < elements.length; i++) {
       if (component.ANGULAR_REQUIREMENTS.get(elements[i].type) && !used_angular_elements.get(elements[i].type)){
         used_angular_elements.add(elements[i].type, true);
