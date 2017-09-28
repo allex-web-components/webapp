@@ -183,9 +183,9 @@
     if (val) {
       this.values = [val];
       this.next();
-    }else{
+    } /*else{
       this.values = null;
-    }
+    }*/
   };
 
   Pipeline.prototype.next = function () {
