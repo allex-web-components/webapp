@@ -532,6 +532,7 @@ angular.module('allex_applib', []);
   AngularFormLogic.prototype._onScope = function (ctrl) {
     this._valid_l = ctrl.attachListener('valid', this.set.bind(this, 'valid'));
     ctrl.set('validation', this.getConfigVal('validation'));
+    ctrl.set('confirmationfields', this.getConfigVal('confirmationfields'));
     ctrl.set('_onChange', this._onChanged.bind(this));
     lib.traverseShallow (this._validfields_l, this._watchForValid.bind(this, ctrl.scope, this.$form.attr('name')));
     ctrl.set('config', this.getConfigVal('form'));
@@ -627,6 +628,7 @@ angular.module('allex_applib', []);
     this.valid = false;
     this._watcher = null;
     this.validation = null;
+    this.confirmationfields = null;
     this._onChange = null;
     this.config = null;
     this.progress = null;
@@ -638,6 +640,7 @@ angular.module('allex_applib', []);
     this.disabled = null;
     this.ftion_status = null;
     this.progress = null;
+    this.confirmationfields = null;
     this.validation = null;
     if (this._watcher) this._watcher();
     this._watcher = null;
@@ -664,7 +667,12 @@ angular.module('allex_applib', []);
   };
 
   AllexAngularFormLogicController.prototype.validate = function (name, modelValue, viewValue) {
-    var validation = this.validation;
+    var validation = this.validation, confirmationfields = this.confirmationfields;
+    if (lib.isVal(modelValue) && confirmationfields && 'object' === typeof confirmationfields && name in confirmationfields) {
+      if (modelValue !== this.data[confirmationfields[name]]) {
+        return false;
+      }
+    }
     if (!validation) return true;
 
     if (!validation[name]) return true;
