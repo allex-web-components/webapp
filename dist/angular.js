@@ -311,6 +311,32 @@ angular.module('allex_applib', []);
     BasicModifier = applib.BasicModifier,
     BRACKET_END = /\[\]$/;
 
+  function possiblyBuildRegExp (obj, val, name) {
+    if (name === 'regex') {
+      if (lib.isString(val)) {
+        obj[name] = new RegExp(val);
+      }
+      if (val && 'object' === typeof val && 'string' in val && 'flags' in val && lib.isString(val.string)) {
+        obj[name] = new RegExp(val.string, val.flags);
+      }
+    }
+  }
+
+  function possiblyBuildRegExps1 (val, name) {
+    if ('object' !== typeof val) {
+      return;
+    }
+    lib.traverseShallow(val, possiblyBuildRegExp.bind(null, val));
+    val = null;
+  }
+
+  function possiblyBuildRegExps (obj) {
+    if (!obj) {
+      return;
+    }
+    lib.traverseShallow(obj, possiblyBuildRegExps1);
+    obj = null;
+  }
 
   function AngularFormLogic(id, options) {
     BasicAngularElement.call(this, id, options);
@@ -327,6 +353,7 @@ angular.module('allex_applib', []);
     this.ftion_status = null;
     this.progress = null;
     this.array_keys = options ? options.array_keys : null;
+    possiblyBuildRegExps(this.getConfigVal('validation'));
   }
 
   lib.inherit (AngularFormLogic, BasicAngularElement);
@@ -677,6 +704,7 @@ angular.module('allex_applib', []);
 
     if (!validation[name]) return true;
     if (!this.validateJSON(validation[name].json_schema, modelValue)) return false;
+    if (!this.validateRegExp(validation[name].regex, modelValue)) return false;
     return this.validateFunction (validation[name].custom, modelValue);
   };
 
@@ -685,6 +713,13 @@ angular.module('allex_applib', []);
     if (!schema) return true;
     var result = lib.jsonschema.validate(value, schema);
     return !result.errors.length;
+  };
+
+  AllexAngularFormLogicController.prototype.validateRegExp = function (regexp, value) {
+    if (!regexp) return true;
+    if (!(regexp instanceof RegExp)) return true;
+    var result = regexp.test(value);
+    return result;
   };
 
   AllexAngularFormLogicController.prototype.validateFunction = function (f, value) {
