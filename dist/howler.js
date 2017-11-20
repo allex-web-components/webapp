@@ -328,13 +328,19 @@
         return;
       }
 
-      this.defer.notify({remaining: this.reps});
+      if (this.defer) {
+        this.defer.notify({remaining: this.reps});
+      }
 
       this.reps --;
     }else{
-      this.defer.notify({remaining: Infinity});
+      if (this.defer) {
+        this.defer.notify({remaining: Infinity});
+      }
     }
-    this.sound.play(this.sprite);
+    if (this.sound) {
+      this.sound.play(this.sprite);
+    }
   };
 
   module.resources.HowlerResource = HowlerResource;
