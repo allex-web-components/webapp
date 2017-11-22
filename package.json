@@ -1,0 +1,22 @@
+{
+  "name": "allex_webappwebcomponent",
+  "version": "1.0.0",
+  "description": "Allex Webapp web component",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allex-web-components/webapp.git"
+  },
+  "keywords": [
+    "ecosystem:AllexJS"
+  ],
+  "author": "HERS Belgrade",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/allex-web-components/webapp/issues"
+  },
+  "homepage": "https://github.com/allex-web-components/webapp#readme"
+}
