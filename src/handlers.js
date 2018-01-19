@@ -70,11 +70,17 @@
   JQueryEventEmitterHandler.prototype.raiseEvent = function () {
     this.emitter.trigger.call(this.emitter, this.name, Array.prototype.slice.call(arguments));
   };    
+
+  function jqueryEventArgsPacker (cb) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    cb(args);
+  }
+
   JQueryEventEmitterHandler.prototype.listenToEvent = function (cb) {
     if (!this.listener) {
       this.listener = cb;
       //console.log('subscribing ...', this.name, this.emitter.attr('id'));
-      this.emitter.on(this.name, cb);
+      this.emitter.on(this.name, jqueryEventArgsPacker.bind(null, cb));
       return this;
     } 
   };    
