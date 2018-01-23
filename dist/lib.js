@@ -1015,7 +1015,8 @@
   };
 
   Selector.prototype._onClicked = function (attributeVal, evntValProcessor, selector, evnt) {
-    var raiseValue =  this.getRaiseValue($(evnt.currentTarget), attributeVal, evntValProcessor);
+    var currentTarget = lib.isArray(evnt) ? evnt[0].currentTarget : evnt.currentTarget,
+      raiseValue =  this.getRaiseValue($(currentTarget), attributeVal, evntValProcessor);
     if ('undefined' === typeof(raiseValue)) return;
     selector.raiseEvent ('onSelected',raiseValue);
   };
@@ -1552,6 +1553,7 @@
     };
 
     TabViewProcessor.prototype._onSelected = function (tabview, evnt, page) {
+      page = lib.isArray(evnt) && evnt.length>1 ? evnt[1] : page;
       if (page === tabview.get('page') && tabview.getConfigVal ('toggle')){
         tabview.clear();
         return;

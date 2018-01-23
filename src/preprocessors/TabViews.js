@@ -114,6 +114,7 @@
     };
 
     TabViewProcessor.prototype._onSelected = function (tabview, evnt, page) {
+      page = lib.isArray(evnt) && evnt.length>1 ? evnt[1] : page;
       if (page === tabview.get('page') && tabview.getConfigVal ('toggle')){
         tabview.clear();
         return;
