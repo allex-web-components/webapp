@@ -94,7 +94,8 @@
     if (this.scene) this.scene.destroy();
     this.scene = null;
 
-    this.$element.empty();
+    //this.$element.empty();
+    this.$element.children().not('.vektrkeep').remove();
     WebElement.prototype.unload.call(this);
   };
 
