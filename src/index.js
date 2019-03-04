@@ -11,4 +11,10 @@
   };
 
   global.AllexWebAppSlugStorage = ss;
+  if (!global.ALLEX_CONFIGURATION) {
+    global.ALLEX_CONFIGURATION = {};
+  }
+  if (!global.ALLEX_CONFIGURATION.CONFIGURATIONS) {
+    global.ALLEX_CONFIGURATION.CONFIGURATIONS = [];
+  }
 })(ALLEX, window);

@@ -3,44 +3,6 @@
     "initializator":[
       "src/index.js"
     ],
-    "lib": [
-      "src/handlers.js",
-      "src/elements/WebElement.js",
-      "src/resources/AnimatedImageZipLibrary.js",
-      "src/resources/WebFont.js",
-      "src/resources/URLGenerator.js",
-      "src/mixins/DataElementMixIn.js",
-      "src/elements/DataAwareElement.js",
-      "src/preprocessors/Pipeline.js",
-      "src/modifiers/Selector.js",
-      "src/misc/router.js",
-      "src/elements/Selector.js",
-      "src/preprocessors/RoleRouter.js",
-      "src/preprocessors/TabViews.js",
-      "src/preprocessors/LogoutDeactivator.js",
-      "src/preprocessors/DataView.js",
-      "src/preprocessors/Keyboard.js"
-    ],
-    "howler" : [
-      "src/resources/Howler.js"
-    ],
-    "vektr" : [
-      "src/elements/VektrCanvas.js",
-      "src/elements/VektrElement.js"
-    ],
-    "angular": [
-      "src/angular.js",
-      "src/elements/angular/index.js",
-      "src/elements/angular/BasicAngularElement.js",
-      "src/elements/angular/AngularElement.js",
-      "src/elements/angular/AngularFormLogic.js",
-      "src/elements/angular/AngularDataTable.js",
-      "src/elements/angular/AngularNotification.js",
-      "src/resources/AngularBootstrapper.js",
-      "src/preprocessors/Notificator.js",
-      "src/modifiers/AngularDataTableAutoAppendRow.js",
-      "src/modifiers/TimeInterval.js"
-    ],
     "apploader" : [
       "src/apploader.js"
     ]

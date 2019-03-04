@@ -1,6 +1,6 @@
 {
   "name": "allex_webappwebcomponent",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Allex Webapp web component",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/allex-web-components/webapp.git"
+    "url": "git@github.com:allex-web-components/webapp.git"
   },
   "keywords": [
     "ecosystem:AllexJS"
